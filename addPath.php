@@ -7,7 +7,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-print_r($_POST);
+// print_r($_POST);
 
 $table = $_POST['table'];
 $old = $_POST['old'];

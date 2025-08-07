@@ -9,69 +9,80 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-if(array_key_exists('logOut', $_POST)) {
-    session_unset();
-    
-    setcookie("id", "", time() - 60 * 60);
-
-    echo "logging Out";
-    // header('Location: index.php');
+if (!array_key_exists('user', $_SESSION)) {
+    header("location: new.php");
 }
 
-$username = "anonymous";
 if (array_key_exists('user', $_SESSION)) {
-    $username = $_SESSION['user'];
-    echo "Welcome: $username";
+    $user = $_SESSION['user'];
+    echo "Welcome: $user";
     echo '<form method="post" id="logout" class="float-end">
                 <input type="submit" name="logOut" value="logout" class="btn btn-outline-primary">
             </form>';
-} else {
-    echo "Not Logged in!";
-    echo '<div id="login" class="float-end">
-            <a type="button" href="/login" class="btn btn-outline-primary">Login</a>
-        </div>';
-}
-
-if (array_key_exists('scenario', $_GET)) {
-    $_SESSION['scenario'] = $_GET['scenario'];
 }
 
 if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST)) {
-    $newTable = $_POST['newTable'];
+    $newTable = str_replace(" ", "_", $_POST['newTable']);
+    $description = mysqli_real_escape_string($conn, $_POST['description']);
     $query = "SELECT * FROM tables WHERE name = '$newTable'";
     // echo $_POST['public'];
-    if (array_key_exists('public', $_POST) && $_POST['public']) {
+    $public2 = "-($user)";
+    if (array_key_exists('viewPublic', $_POST) && $_POST['viewPublic']) {
         $public = '-all';
+        if (array_key_exists('editPublic', $_POST) && $_POST['editPublic']) {
+            $public2 = '-all';
+        }
     } else {
-        $public = '-none';
+        $public = "-($user)";
     }
 
     $result = mysqli_query($conn, $query);
 
     if($row = mysqli_fetch_array($result) || $newTable == "tables" || $newTable == "users") {
-        echo "That is already taken!";
+        echo "<div class='error'>That is already taken!</div>";
+    } elseif (preg_match('/[^A-Za-z0-9_]/', $newTable)) {
+        echo "<div class='error'>Improper character detected! Letters and numbers only!</div>";
     } else {
 
+        echo $newTable;
+
+        $extra = "";
+        $type = $_POST['tableType'];
+
+        if ($type == "Three") {
+            $extra = "choice3 varChar(255), link3 int NOT NULL,";
+        }
+
         echo "<br>Creating new table, please wait...<br>";
-        $sql = "INSERT INTO `tables` (`id`, `name`, `creator`, `editor`, `viewer`) VALUES (NULL, '$newTable', '$username', '$public', '$public');";
+        $sql = "INSERT INTO `tables` (`id`, `name`, `creator`, `editor`, `viewer`, `description`, `type`) VALUES (NULL, '$newTable', '$user', '$public', '$public2', '$description', '$type');";
         echo $sql;
 
         mysqli_query($conn, $sql);
 
+
         $createSql = "CREATE TABLE $newTable (
-                    id int NOT NULL,
+                    id int NOT NULL AUTO_INCREMENT,
                     area varChar(255) NOT NULL,
                     choice1 varChar(255),
-                    link1 int,
+                    link1 int NOT NULL,
                     choice2 varChar(255),
-                    link2 int,
+                    link2 int NOT NULL,
+                    $extra
                     author varChar(255),
                     PRIMARY KEY (id)
         )";
 
+
+
         echo $createSql;
 
         mysqli_query($conn, $createSql);
+
+        $update = "UPDATE `users` SET `myTables` = CONCAT(`myTables`, '-($newTable)') WHERE `username` = '$user'";
+        mysqli_query($conn, $update);
+
+        $_SESSION['scenario'] = $newTable;
+        // header("location: new.php");
     }
 }
 
@@ -91,6 +102,8 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
             crossorigin="anonymous"></script>
+
+    <title>Choose Your Own Adventure</title>
 
     <style type="text/css">
         :root {
@@ -129,13 +142,22 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
             width: 25px;
             cursor: help;
         }
+
+        .error {
+            background-color: red;
+            position: absolute;
+            top: 30px;
+            left: 45%;
+            padding: 10px;
+
+        }
   </style>
 
 </head>
 <body>
 
-    <form>
-        <select name="table" id="tableSelector" class="btn btn-dark">
+    <form action="new.php" method="get">
+        <select name="scenario" id="tableSelector" class="btn btn-dark">
             <?php
                 $result = mysqli_query($conn, "show tables");
                 while($tablename = mysqli_fetch_array($result)) {        
@@ -143,19 +165,33 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
                 }
             ?>
         </select>
-        <input type="button" id="restart" value="Select" class="btn btn-outline-dark restart">
+        <input type="submit" id="restart" value="Select" class="btn btn-outline-dark restart">
         <input type="checkbox" id="debug-toggle">
     </form>
 
 
 
     <br>
-    <div class="bg-secondary">
-        <form method="post">
-            <input type="text" name="newTable">
-            <label for="public">Public?</label>
-            <input type="checkbox" name="public">
-            <input type="submit" name="newSubmit">
+    <div class="bg-secondary p-3">
+        <form method="post" class="container">
+            <label for="newTable" class="form-label">Table Name:</label>
+            <input type="text" name="newTable" class="form-control" required>
+            <input type="checkbox" name="viewPublic" data-bs-toggle="collapse" data-bs-target="#editPriviledges">
+            <label for="public">View Public?</label>
+            <br>
+            <div class="collapse" id="editPriviledges">
+                <input type="checkbox" name="editPublic">
+                <label for="public">Edit Public?</label>
+            </div>
+            <label for="description" class="form-label">Description:</label>
+            <input type="text" name="description" class="form-control mb-2">
+            <label for="tableType">Adventure Type: </label>
+            <select class="btn btn-primary" name="tableType">
+                <option>Classic</option>
+                <option>Three</option>
+                <option>Loop</option>
+            </select>
+            <input type="submit" name="newSubmit" class="btn btn-primary mb-2">
         </form>
     </div>
 
@@ -170,7 +206,7 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
         echo "table = '" . $_SESSION['scenario'] . "';";
         }
         
-        echo "let username = '$username';"; 
+        echo "let username = '$user';"; 
     ?>
 
     if ( window.history.replaceState ) {

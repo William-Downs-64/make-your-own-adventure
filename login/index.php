@@ -111,12 +111,12 @@
           integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
           crossorigin="anonymous"></script>
 
-    <title>Underwater Missions</title>
+    <title>MYOA Login</title>
 
     <style type="text/css">
 
         body {
-            background-color: blue;
+            background-color: whitesmoke;
         }
 
         #signUp {
@@ -141,9 +141,9 @@
     <body>
 
         <div class="text-center mt-4 mx-auto p-4" id="head">
-            <h1>Underwater Missions</h1>
+            <h1>Make Your Own Adventure</h1>
 
-            <p>Support missionaries or become one yourself!</p>
+            <p>A game where you can play or create adventures!</p>
         
         </div>  
 
