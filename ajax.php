@@ -33,7 +33,7 @@ if ($type == "load") {
         }
         $myObj->choice2 = $row['choice2'];
         $myObj->link2 = $row['link2'];
-        if ($tableType == "Three") {
+        if (array_key_exists("choice3", $row)) {
             $myObj->choice3 = $row['choice3'];
             $myObj->link3 = $row['link3'];
         }
@@ -53,11 +53,43 @@ if ($type == "load") {
     $old = $_POST['old'];
     $choice = $_POST['choice'];
 
+    //loop link
     if (isset($_POST['submitLink']) && $_POST['path'] != "") {
         $new = $_POST['path'];
         if ($choice) {
             mysqli_query($conn, "UPDATE $table SET link$choice='$new' WHERE id='$old' LIMIT 1");
         }
+
+    // update area
+    } elseif (isset($_POST['submitUpdate']) && $_POST['description'] != "") {
+
+        // $string = "'" . mysqli_real_escape_string($conn, $_POST["description"]) . "' ,";
+        // $string .= "'" . mysqli_real_escape_string($conn, $_POST["option1"]) . "' ,";
+        // $string .= "'" . mysqli_real_escape_string($conn, $_POST["option2"]) . "' ,";
+        // if (isset($_POST['option3'])) {
+        //     $string .= "'" . mysqli_real_escape_string($conn, $_POST["option3"]) . "' ,";
+        // }
+        // $string .= "'" . mysqli_real_escape_string($conn, $_POST["author"]) . "'";
+        // //echo $string;
+        // $queryUpdate = "UPDATE `$table` SET (area, choice1, choice2, author) VALUES ($string) WHERE `id` = '$old' LIMIT 1";
+        $queryUpdate = "UPDATE `$table` SET 
+            area = '" . mysqli_real_escape_string($conn, $_POST["description"]) . "',
+            choice1 = '" . mysqli_real_escape_string($conn, $_POST["option1"]) . "',
+            choice2 = '" . mysqli_real_escape_string($conn, $_POST["option2"]) . "' ,";
+        if (isset($_POST['option3'])) {
+            $queryUpdate .= "choice3 = '" . mysqli_real_escape_string($conn, $_POST["option3"]) . "' ,";
+        }
+        $queryUpdate .= "author = '" . mysqli_real_escape_string($conn, $_POST["author"]) . "'
+            WHERE `id` = $old LIMIT 1";
+
+        // if (isset($_POST['option3'])) {
+        //     $queryUpdate = "UPDATE `$table` SET (area, choice1, choice2, choice3, author) VALUES ($string) WHERE `id` = '$old' LIMIT 1";
+        // }
+
+        // echo $queryUpdate;
+        mysqli_query($conn, $queryUpdate);
+
+    //new area data
     } elseif (isset($_POST['submit']) && $_POST['description'] != ""){
 
         echo mysqli_insert_id($conn);

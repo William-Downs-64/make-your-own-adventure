@@ -23,8 +23,9 @@
             if($result = mysqli_query($conn, $query)) {
                 if($row = mysqli_fetch_array($result)) {
                     $error .= "Error: That username is already used!";
-                }
-                else {
+                } elseif (preg_match('/[^A-Za-z0-9\s]/', $_POST['usernameSignUp'])) {
+                    $error = "Improper character detected! Letters, numbers, and spaces only!";
+                } else {
                     
                     $hash = password_hash(mysqli_real_escape_string($conn, $_POST['passwordSignUp']), PASSWORD_DEFAULT);
 
@@ -64,7 +65,7 @@
                         // $_SESSION[''] = $row['code'];
 
                         if($_POST['stayLogin']) {
-                            setcookie("id", $_POST['usernameLogin'], time() + 60 * 60 * 24);
+                            setcookie("userId", $_POST['usernameLogin'], time() + 60 * 60 * 24);
                         }
                         
                         header('Location: ../new.php');

@@ -17,6 +17,7 @@ if (array_key_exists('user', $_SESSION)) {
     $user = $_SESSION['user'];
     echo "Welcome: $user";
     echo '<form method="post" id="logout" class="float-end">
+                <a href="new.php" class="btn btn-secondary">Play</a>
                 <input type="submit" name="logOut" value="logout" class="btn btn-outline-primary">
             </form>';
 }
@@ -38,10 +39,13 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
 
     $result = mysqli_query($conn, $query);
 
+    $error = "";
+    $errorType = "danger";
+
     if($row = mysqli_fetch_array($result) || $newTable == "tables" || $newTable == "users") {
-        echo "<div class='error'>That is already taken!</div>";
+        $error = "That name is already taken";
     } elseif (preg_match('/[^A-Za-z0-9_]/', $newTable)) {
-        echo "<div class='error'>Improper character detected! Letters and numbers only!</div>";
+        $error = "Improper character detected! Letters and numbers only!";
     } else {
 
         echo $newTable;
@@ -49,7 +53,7 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
         $extra = "";
         $type = $_POST['tableType'];
 
-        if ($type == "Three") {
+        if ($type == "Three" || $type == "RPG") {
             $extra = "choice3 varChar(255), link3 int NOT NULL,";
         }
 
@@ -62,7 +66,7 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
 
         $createSql = "CREATE TABLE $newTable (
                     id int NOT NULL AUTO_INCREMENT,
-                    area varChar(255) NOT NULL,
+                    area TEXT NOT NULL,
                     choice1 varChar(255),
                     link1 int NOT NULL,
                     choice2 varChar(255),
@@ -82,7 +86,7 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
         mysqli_query($conn, $update);
 
         $_SESSION['scenario'] = $newTable;
-        // header("location: new.php");
+        header("location: new.php");
     }
 }
 
@@ -105,58 +109,15 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
 
     <title>Choose Your Own Adventure</title>
 
-    <style type="text/css">
-        :root {
-            --debug: none;
-        }
-        
-        .currentChoice {
-            margin-top: 10px;
-            width: 80%;
-            background-color: whitesmoke;
-            padding: 10px;
-        }
-
-        .history-container {
-            height: 200px;
-            overflow-y:scroll;
-            position: relative;
-        }
-        .history-container thead {
-            position:sticky;
-            top: 0;
-            background-color: whitesmoke;
-        }
-
-        .link.active {
-            background-color: yellow;
-        }
-
-        .debug {
-            display: var(--debug);
-        }
-        #debug-toggle {
-            border: none;
-            opacity: 0;
-            margin-left: 250px;
-            width: 25px;
-            cursor: help;
-        }
-
-        .error {
-            background-color: red;
-            position: absolute;
-            top: 30px;
-            left: 45%;
-            padding: 10px;
-
-        }
-  </style>
+    <link rel="stylesheet" href="style.css">
 
 </head>
 <body>
 
-    <form action="new.php" method="get">
+    <div id="errorHolder"></div>
+        
+    <form action="new.php" method="post">
+        <label for="scenario">List of all Adventures</label>
         <select name="scenario" id="tableSelector" class="btn btn-dark">
             <?php
                 $result = mysqli_query($conn, "show tables");
@@ -165,16 +126,14 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
                 }
             ?>
         </select>
-        <input type="submit" id="restart" value="Select" class="btn btn-outline-dark restart">
-        <input type="checkbox" id="debug-toggle">
     </form>
 
-
+    <h1 class="text-center">Create New Adventure</h1>
 
     <br>
     <div class="bg-secondary p-3">
         <form method="post" class="container">
-            <label for="newTable" class="form-label">Table Name:</label>
+            <label for="newTable" class="form-label">Adventure Name:</label>
             <input type="text" name="newTable" class="form-control" required>
             <input type="checkbox" name="viewPublic" data-bs-toggle="collapse" data-bs-target="#editPriviledges">
             <label for="public">View Public?</label>
@@ -190,6 +149,7 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
                 <option>Classic</option>
                 <option>Three</option>
                 <option>Loop</option>
+                <option>RPG</option>
             </select>
             <input type="submit" name="newSubmit" class="btn btn-primary mb-2">
         </form>
@@ -213,7 +173,20 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
         window.history.replaceState( null, null, window.location.href );
     }
 
+    function displayError(message, type) {
+        if (!message || message == "" || message == "undefined") {
+            return;
+        }
 
+        let buttonHtml = "";
+        if (type != "primary") {
+            buttonHtml = '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+        }
+
+        $("#errorHolder").append(`<div class="alert alert-${type}">${message} ${buttonHtml}</div>`);
+    }
+
+    displayError(<?php echo "`$error`, '$errorType'";?>);
 
 </script>
 

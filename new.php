@@ -18,6 +18,9 @@ if(array_key_exists('logOut', $_POST)) {
     // header('Location: index.php');
 }
 
+$error = "";
+$errorType = "danger";
+
 $username = "anonymous";
 if (array_key_exists('user', $_SESSION)) {
     $username = $_SESSION['user'];
@@ -27,7 +30,7 @@ if (array_key_exists('user', $_SESSION)) {
                 <input type="submit" name="logOut" value="logout" class="btn btn-outline-primary">
             </form>';
 } else {
-    echo "Not Logged in!";
+    $error = "Not Logged In! ";
     echo '<div id="login" class="float-end">
             <a type="button" href="/login" class="btn btn-outline-primary">Login</a>
         </div>';
@@ -44,7 +47,9 @@ if (!array_key_exists('scenario', $_SESSION)) {
     $_SESSION['scenario'] = "portal";
 }
 
+$view = false;
 $edit = false;
+$admin = false;
 $tableType = "Classic";
 if ($username != "anonymous"){
     $result = mysqli_query($conn, "SELECT * FROM `tables` WHERE `name` = '" . $_SESSION['scenario'] . "'");
@@ -58,12 +63,24 @@ if ($username != "anonymous"){
         if ($row['creator'] == $username || str_contains($row['editor'], "-($username)") || str_contains($row['editor'], "-all")) {
             $edit = true;
         }
+        if ($row['creator'] == $username || str_contains($row['viewer'], "-($username)") || str_contains($row['viewer'], "-all")) {
+            $view = true;
+        }
+        if ($row['creator'] == $username || $username == "WieRD") {
+            $admin = true;
+        }
     }
-}
-if (!$edit) {
-    echo "<div class='error'>View Only</div>";
+} else {
+    $_SESSION['scenario'] == "portal";
+    $view = true;
 }
 
+if (!$view) {
+    $error .= "You don't have access to this";
+} elseif (!$edit) {
+    $error .= "View Only";
+    $errorType = "primary";
+}
 ?>
 
 <!DOCTYPE html>
@@ -82,62 +99,7 @@ if (!$edit) {
 
     <title>Choose Your Own Adventure</title>
 
-    <style type="text/css">
-        :root {
-            --debug: none;
-        }
-        
-        .currentChoice {
-            margin-top: 10px;
-            width: 80%;
-            background-color: whitesmoke;
-            padding: 10px;
-        }
-
-        .history-container {
-            height: 200px;
-            overflow-y:scroll;
-            position: relative;
-        }
-        .history-container thead {
-            position:sticky;
-            top: 0;
-            background-color: whitesmoke;
-        }
-
-        .link.active {
-            background-color: yellow;
-        }
-
-        .debug {
-            display: var(--debug);
-        }
-        #debug-toggle {
-            border: none;
-            opacity: 0;
-            margin-left: 250px;
-            width: 25px;
-            cursor: help;
-        }
-        #inputData {
-            display: none;
-        }
-        .prev-choice {
-            border: 1px solid black;
-            padding: 10px;
-            text-align: center;
-            font-size: 20px;
-            background-color: lightblue;
-        }
-        .error {
-            background-color: red;
-            position: absolute;
-            top: 30px;
-            left: 45%;
-            padding: 10px;
-
-        }
-  </style>
+    <link rel="stylesheet" href="style.css">
 
 </head>
 <body>
@@ -162,7 +124,7 @@ if (!$edit) {
         <input type="checkbox" id="debug-toggle">
     </form>
 
-
+    <div id="errorHolder"></div>
 
     <br>
     <div class="history-container">
@@ -181,6 +143,7 @@ if (!$edit) {
     </div>
 
     <div class="currentChoice container p-3 mt-4 border main-box">
+        <?php if ($admin) {echo "<button class='btn btn-success float-end' id='editPath'>Edit this path</button>";} ?>
         <div id="data" class="row">
             <input type='number' id='currentArea' class='areaId debug form-control-plaintext col-sm-1' readonly value=''>
             <br>
@@ -194,19 +157,19 @@ if (!$edit) {
         </div>
         <div id="inputData" class="hide">
             <!-- Create new area and post link to old path -->
-            <form method='post' action='ajax.php?type=add'>
-                <div class="prev-choice">
-                    <p id="old-description"></p>
-                    <p id="old-choice" class="btn btn-secondary disabled"></p>
-                </div>
-                <h4 class="new-path">New Path Found!</h4>
+            <div class="prev-choice">
+                <p id="old-description"></p>
+                <p id="old-choice" class="btn btn-secondary disabled"></p>
+            </div>
+            <h4 class="new-path">New Path Found!</h4>
+            <form method='post' action='ajax.php?type=add' id='addPathForm'>
                 <label for='description'>What happens?</label>
                 <textarea id='area' name='description' class='form-control'></textarea>
                 <label for='option1' class=>Path 1</label>
                 <input type='text' id='option1' name='option1' class='form-control'>
                 <label for='option2'>Path 2</label>
                 <input type='text' id='option2' name='option2' class='form-control'>
-                <?php if ($tableType == "Three") {echo "
+                <?php if ($tableType == "Three" || $tableType == "RPG") {echo "
                     <label for='option3'>Path 3</label>
                     <input type='text' id='option3' name='option3' class='form-control'>
                 ";} ?>
@@ -218,15 +181,16 @@ if (!$edit) {
                 <input type='submit' name='submit' id='submit' class='btn btn-primary form-control mt-2'>
 
                 <!-- Add link to prior area -->
-                <?php if($tableType == "Three" || $tableType == "Loop") {
-                    echo '<select class="form-select mt-3" name="path" id="path">';
-
+                <?php if($tableType == "Three" || $tableType == "Loop" || $tableType == "RPG") {
+                    echo '<select class="form-select mt-3" name="path" id="path" value="">';
+                        echo '<option value="">Link to Prior Area</option>';
                     $queryPath = "SELECT `area`, `id` FROM " . $_SESSION['scenario'];
             
                     if ($resultPath = mysqli_query($conn, $queryPath)) {
                         while($path = mysqli_fetch_array($resultPath)) {
                             $area = substr($path['area'], 0, 80) . "...";
-                            echo "<option value='" . $path["id"] . "'>$area</option>";
+                            $thisId = $path['id'];
+                            echo "<option value='$thisId'>$thisId=$area</option>";
                         }
                     }
                     echo "</select>
@@ -245,6 +209,8 @@ if (!$edit) {
     let debug = false;
     let table = "portal";
     let edit = false;
+    let view = false;
+    let rpg = false;
 
     <?php if (array_key_exists("scenario", $_SESSION)) {
         echo "table = '" . $_SESSION['scenario'] . "';";
@@ -253,11 +219,28 @@ if (!$edit) {
         echo "let username = '$username';";
         if ($edit) {
             echo "edit = $edit;";
-        } 
+        }
+        if ($view) {
+            echo "view = $view;";
+        }
+        if ($tableType == "RPG") {
+            echo "rpg = true;";
+        }
     ?>
 
     if (!edit) {
-        $("#inputData").html("You don't have access to edit this<br><button class='restart btn btn-primary'>Restart</button> ");
+        
+        if (username == "anonymous" && table == "portal") {
+            $("#addPathForm").html(`You don't have access to add to this!<br>Login to be able to edit.<br>
+                <button class='restart btn btn-primary'>Restart</button><a type='button' href='/login' class='btn btn-outline-primary'>Login</a>`);
+            $("#tableSelector").addClass("disabled");
+            displayError("Login to view other tables", "warning");
+        } else {
+            $("#addPathForm").html("You don't have access to add to this!<br><button class='restart btn btn-primary'>Restart</button>");
+        }
+    }
+    if (!view) {
+        $(".main-box").html("You don't have access to view this!<br><a href='browse.php' class='btn btn-warning'>Browse</a>");
     }
 
     $("#tableSelector").val(table);
@@ -279,18 +262,18 @@ if (!$edit) {
                     } else {
                         let object = JSON.parse(this.responseText);
 
-                        let buttonHtml = `<button class='btn btn-primary col' data-choice='1' data-link='${object.link1}'>${object.choice1}<span class="debug">(${object.link1})</span></button>`;
+                        let buttonHtml = `<button class='btn btn-primary col' data-choice='1' data-link='${object.link1}'><span class="choice-text">${object.choice1}</span><span class="debug">(${object.link1})</span></button>`;
                         if (object.link1 == 'win') {
-                            buttonHtml = `<button class='btn btn-info col' data-choice='1' data-link='1'>${object.choice1}<span class="debug">(${object.link1})</span></button>`
+                            buttonHtml = `<button class='btn btn-info col' data-choice='1' data-link='1'><span class="choice-text">${object.choice1}</span><span class="debug">(${object.link1})</span></button>`
                         }
                         if (!object.choice1) {
-                            buttonHtml = `<button class='btn btn-danger col restart' data-choice='1' data-link='1'>Restart</button>`
+                            buttonHtml = `<button class='btn btn-danger col restart' data-choice='1' data-link='1'><span class="choice-text"></span>Restart</button>`
                         }
                         if (object.choice2) {
-                            buttonHtml += `<button class='btn btn-warning col' data-choice='2' data-link='${object.link2}'>${object.choice2}<span class="debug">(${object.link2})</span></button>`
+                            buttonHtml += `<button class='btn btn-warning col' data-choice='2' data-link='${object.link2}'><span class="choice-text">${object.choice2}</span><span class="debug">(${object.link2})</span></button>`
                         }
                         if (object.choice3) {
-                            buttonHtml += `<button class='btn btn-success col' data-choice='3' data-link='${object.link3}'>${object.choice3}<span class="debug">(${object.link3})</span></button>`
+                            buttonHtml += `<button class='btn btn-success col' data-choice='3' data-link='${object.link3}'><span class="choice-text">${object.choice3}</span><span class="debug">(${object.link3})</span></button>`
                         }
 
                         $("#currentArea").val(object.id);
@@ -298,6 +281,15 @@ if (!$edit) {
                         $("#author").html(object.author)
 
                         $("#choiceButtons").html(buttonHtml);
+
+                        if (rpg) {
+                            checkScore(object.area);
+                            $("#choiceButtons button").each(function() {
+                                if (!checkAbility($(this).text())) {
+                                    $(this).addClass("disabled");
+                                }
+                            })
+                        }
 
                         let history = `
                             <tr id='${id}'>;
@@ -329,9 +321,13 @@ if (!$edit) {
 
     $(document).on("click", ".currentChoice #choiceButtons button", function() {
         let value = $(this).data("link");
-        let table = $("#tableSelector").val();
+        // let table = $("#tableSelector").val();
         let choice = $(this).data("choice");
         let text = $(this).html();
+
+        if (rpg) {
+            checkScore($(this).text());
+        }
 
         $("#" + id).css("background-color", "lightblue");
         $(`#${id} td[data-choice=${choice}]`).addClass("active");
@@ -348,6 +344,28 @@ if (!$edit) {
             console.log(choice, old, table, this);
             newPath(choice, old, table);
         }
+    })
+
+    $("#editPath").on("click", function() {
+        $("#area").val($("#areaDescription").html());
+        $("#option1").val($("button[data-choice='1'] .choice-text").text());
+        $("#option2").val($("button[data-choice='2'] .choice-text").text());
+        $("#option3").val($("button[data-choice='3'] .choice-text").text());
+        $("#newPathAuthor").val($("#author").html());
+        $("#oldId").val($("#currentArea").val());
+        $("#oldTable").val(table);
+        $("#inputData").show();
+        $("#submit").attr("name", "submitUpdate");
+        $("#submit").val("Update");
+        $(".new-path").html("Update path: " + $("#oldId").val());
+    })
+
+    $("#history").on("click", "tr", function() {
+        let value = $(this).attr("id");
+        // let table = $("#tableSelector").val();
+        console.log(value);
+
+        loadArea(value, table);
     })
 
     function newPath(choice, oldId, table) {
@@ -376,7 +394,26 @@ if (!$edit) {
         }
     })
 
+    function displayError(message, type) {
+        if (!message || message == "" || message == "undefined") {
+            return;
+        }
+
+        let buttonHtml = "";
+        if (type != "primary") {
+            buttonHtml = '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+        }
+
+        $("#errorHolder").append(`<div class="alert alert-${type} error">${message}${buttonHtml}</div>`);
+    }
+
+    displayError(<?php echo "`$error`, '$errorType'";?>);
+
 </script>
+
+<?php if ($tableType == "RPG") {
+    echo "<script type='text/javascript' src='rpgmode.js'></script>";
+} ?>
 
 </body>
 </html>

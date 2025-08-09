@@ -65,36 +65,7 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
 
     <title>Choose Your Own Adventure</title>
 
-    <style type="text/css">
-        :root {
-            --debug: none;
-        }
-
-        .debug {
-            display: var(--debug);
-        }
-        #debug-toggle {
-            border: none;
-            opacity: 0;
-            margin-left: 250px;
-            width: 25px;
-            cursor: help;
-        }
-
-        .table-container {
-            display: flex;
-            flex-wrap: wrap;
-            background-color: lightblue;
-            margin-top: 25px;
-            width: 90%;
-            min-height: 50px;
-        }
-
-        .table-container .card {
-            min-width: 200px;
-            max-width: 400px;
-        }
-  </style>
+    <link rel="stylesheet" href="style.css">
 
 </head>
 <body>
