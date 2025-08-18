@@ -32,7 +32,7 @@ if (array_key_exists('user', $_SESSION)) {
 } else {
     $error = "Not Logged In! ";
     echo '<div id="login" class="float-end">
-            <a type="button" href="/login" class="btn btn-outline-primary">Login</a>
+            <a type="button" href="index.php" class="btn btn-outline-primary">Login</a>
         </div>';
 }
 
@@ -86,6 +86,7 @@ if (!$view) {
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script type="text/javascript" src="jquery-3.7.1.min.js"></script>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
@@ -143,7 +144,7 @@ if (!$view) {
     </div>
 
     <div class="currentChoice container p-3 mt-4 border main-box">
-        <?php if ($admin) {echo "<button class='btn btn-success float-end' id='editPath'>Edit this path</button>";} ?>
+        <!-- <?php if ($admin) {echo "<button class='btn btn-success float-end' id='editPath'>Edit this path</button>";} ?> -->
         <div id="data" class="row">
             <input type='number' id='currentArea' class='areaId debug form-control-plaintext col-sm-1' readonly value=''>
             <br>
@@ -165,6 +166,10 @@ if (!$view) {
             <form method='post' action='ajax.php?type=add' id='addPathForm'>
                 <label for='description'>What happens?</label>
                 <textarea id='area' name='description' class='form-control'></textarea>
+                
+                <button class='colorToggle btn btn-secondary' type='button'>Add Color</button>
+                <div class='colorInput'></div>
+                <br>
                 <label for='option1' class=>Path 1</label>
                 <input type='text' id='option1' name='option1' class='form-control'>
                 <label for='option2'>Path 2</label>
@@ -232,7 +237,7 @@ if (!$view) {
         
         if (username == "anonymous" && table == "portal") {
             $("#addPathForm").html(`You don't have access to add to this!<br>Login to be able to edit.<br>
-                <button class='restart btn btn-primary'>Restart</button><a type='button' href='/login' class='btn btn-outline-primary'>Login</a>`);
+                <button class='restart btn btn-primary'>Restart</button><a type='button' href='index.php' class='btn btn-outline-primary'>Login</a>`);
             $("#tableSelector").addClass("disabled");
             displayError("Login to view other tables", "warning");
         } else {
@@ -262,18 +267,21 @@ if (!$view) {
                     } else {
                         let object = JSON.parse(this.responseText);
 
-                        let buttonHtml = `<button class='btn btn-primary col' data-choice='1' data-link='${object.link1}'><span class="choice-text">${object.choice1}</span><span class="debug">(${object.link1})</span></button>`;
+                        let buttonHtml = `<button class='btn btn-primary col-md' data-choice='1' data-link='${object.link1}'><span class="choice-text">${object.choice1}</span><span class="debug">(${object.link1})</span></button>`;
                         if (object.link1 == 'win') {
-                            buttonHtml = `<button class='btn btn-info col' data-choice='1' data-link='1'><span class="choice-text">${object.choice1}</span><span class="debug">(${object.link1})</span></button>`
+                            buttonHtml = `<button class='btn btn-info col-md' data-choice='1' data-link='1'><span class="choice-text">${object.choice1}</span><span class="debug">(${object.link1})</span></button>`
                         }
                         if (!object.choice1) {
-                            buttonHtml = `<button class='btn btn-danger col restart' data-choice='1' data-link='1'><span class="choice-text"></span>Restart</button>`
+                            buttonHtml = `<button class='btn btn-danger col-md restart' data-choice='1' data-link='1'><span class="choice-text"></span>Restart</button>`
                         }
                         if (object.choice2) {
-                            buttonHtml += `<button class='btn btn-warning col' data-choice='2' data-link='${object.link2}'><span class="choice-text">${object.choice2}</span><span class="debug">(${object.link2})</span></button>`
+                            buttonHtml += `<button class='btn btn-warning col-md' data-choice='2' data-link='${object.link2}'><span class="choice-text">${object.choice2}</span><span class="debug">(${object.link2})</span></button>`
                         }
                         if (object.choice3) {
-                            buttonHtml += `<button class='btn btn-success col' data-choice='3' data-link='${object.link3}'><span class="choice-text">${object.choice3}</span><span class="debug">(${object.link3})</span></button>`
+                            buttonHtml += `<button class='btn btn-success col-md' data-choice='3' data-link='${object.link3}'><span class="choice-text">${object.choice3}</span><span class="debug">(${object.link3})</span></button>`
+                        }
+                        if (object.color) {
+                            $("body").css("background-color", object.color);
                         }
 
                         $("#currentArea").val(object.id);
@@ -343,6 +351,15 @@ if (!$view) {
             $("#old-choice").html(text);
             console.log(choice, old, table, this);
             newPath(choice, old, table);
+        }
+    })
+
+    $(".colorToggle").on("click", function() {
+        if ($(".colorInput").html() == "") {
+
+            $(".colorInput").html("<label for='areaColor'>Color: </label><input type='color' name='areaColor' value='#ffffff'>")
+        } else {
+            $(".colorInput").html("")
         }
     })
 

@@ -67,6 +67,7 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
         $createSql = "CREATE TABLE $newTable (
                     id int NOT NULL AUTO_INCREMENT,
                     area TEXT NOT NULL,
+                    color varChar(7),
                     choice1 varChar(255),
                     link1 int NOT NULL,
                     choice2 varChar(255),

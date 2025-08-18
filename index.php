@@ -68,7 +68,7 @@
                             setcookie("userId", $_POST['usernameLogin'], time() + 60 * 60 * 24);
                         }
                         
-                        header('Location: ../new.php');
+                        header('Location: new.php');
         
                     }
                     else {

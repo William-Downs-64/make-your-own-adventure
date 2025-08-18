@@ -37,6 +37,9 @@ if ($type == "load") {
             $myObj->choice3 = $row['choice3'];
             $myObj->link3 = $row['link3'];
         }
+        if (array_key_exists("color", $row)) {
+            $myObj->color = $row['color'];
+        }
 
 
         $myObj->author = $row['author'];
@@ -79,6 +82,9 @@ if ($type == "load") {
         if (isset($_POST['option3'])) {
             $queryUpdate .= "choice3 = '" . mysqli_real_escape_string($conn, $_POST["option3"]) . "' ,";
         }
+        if (isset($_POST['areaColor'])) {
+            $queryUpdate .= "color = '" . mysqli_real_escape_string($conn, $_POST["areaColor"]) . "' ,";
+        }
         $queryUpdate .= "author = '" . mysqli_real_escape_string($conn, $_POST["author"]) . "'
             WHERE `id` = $old LIMIT 1";
 
@@ -101,13 +107,23 @@ if ($type == "load") {
         if (isset($_POST['option3'])) {
             $string .= "'" . mysqli_real_escape_string($conn, $_POST["option3"]) . "' ,";
         }
-        $string .= "'" . mysqli_real_escape_string($conn, $_POST["author"]) . "'";
-        //echo $string;
-        $queryInsert = "INSERT INTO $table (area, choice1, choice2, author) VALUES ($string)";
-
-        if (isset($_POST['option3'])) {
-            $queryInsert = "INSERT INTO $table (area, choice1, choice2, choice3, author) VALUES ($string)";
+        if (isset($_POST['areaColor'])) {
+            $string .= "'" . mysqli_real_escape_string($conn, $_POST["areaColor"]) . "' ,";
         }
+        $string .= "'" . mysqli_real_escape_string($conn, $_POST["author"]) . "'";
+        // echo $string;
+        
+        $queryInsert = "INSERT INTO $table (area, choice1, choice2, ";
+        if (isset($_POST['option3'])) {
+            $queryInsert .= "choice3, ";
+        }
+        if (isset($_POST['areaColor'])) {
+            $queryInsert .= "color, ";
+        }
+        $queryInsert .= "author) VALUES ($string)";
+
+        // echo "<br>";
+        // echo $queryInsert;
 
         mysqli_query($conn, $queryInsert);
         $new = mysqli_insert_id($conn);

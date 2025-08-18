@@ -29,7 +29,7 @@ if (array_key_exists('user', $_SESSION)) {
 } else {
     echo "Not Logged in!";
     echo '<div id="login" class="float-end">
-            <a type="button" href="/login" class="btn btn-outline-primary">Login</a>
+            <a type="button" href="index.php" class="btn btn-outline-primary">Login</a>
         </div>';
 }
 
