@@ -1,6 +1,7 @@
 <?php
-$id = $_GET['id'];
-$table = $_GET['table'];
+session_start();
+
+$type = $_GET['type'];
 
 $conn = new mysqli("localhost", "root", "", "cyoa");
 
@@ -9,46 +10,159 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// echo "$q";
+if ($type == "load") {
+    $id = $_GET['id'];
+    $table = $_GET['table'];
+    $tableType = $_GET['tableType'];
 
-$sql = "SELECT * FROM $table WHERE `id` = '$id';";
+    // echo "$q";
 
-$result = mysqli_query($conn , $sql);
+    $sql = "SELECT * FROM $table WHERE `id` = '$id';";
+
+    $result = mysqli_query($conn , $sql);
+
+    while($row = mysqli_fetch_array($result)) {
+        $myObj = new stdClass();
+        $myObj->id = "$id";
+        $myObj->area = $row['area'];
+        $myObj->choice1 = $row['choice1'];
+        $myObj->link1 = $row['link1'];
+        if(str_contains(strtolower($row['area']), "you win!")) {
+            $myObj->choice1 = 'Congratulations';
+            $myObj->link1 = 'win';
+        }
+        $myObj->choice2 = $row['choice2'];
+        $myObj->link2 = $row['link2'];
+        if (array_key_exists("choice3", $row)) {
+            $myObj->choice3 = $row['choice3'];
+            $myObj->link3 = $row['link3'];
+        }
+        if (array_key_exists("color", $row)) {
+            $myObj->color = $row['color'];
+        }
 
 
-while($row = mysqli_fetch_array($result)) {
-  // echo "<tr id='$id'>";
-  // echo "<td class='description'>" . $row['area'] . "</td>";
-  // if($row['choice1']) {
-  // echo "<td class='link'><button class='btn btn-primary' data-choice='1' data-link='" . $row['link1'] ."'>" . $row['choice1'] . "</button></td>";
-  // echo "<td>" . $row['link1'] . "</td>";
-  // } else {
-  //   echo "<td class='link'><button class='btn btn-danger' data-choice='1' data-link='1'>Restart</button></td>";
-  // }
-  // if ($row['choice2']) {
-  // echo "<td class='link'><button class='btn btn-warning' data-choice='2' data-link='" . $row['link2'] ."'>" . $row['choice2'] . "</button></td>";
-  // echo "<td>" . $row['link2'] . "</td>";
-  // }
-  // echo "</tr>";
-  $myObj = new stdClass();
-  $myObj->id = "$id";
-  $myObj->area = $row['area'];
-  $myObj->choice1 = $row['choice1'];
-  $myObj->link1 = $row['link1'];
-  if(str_contains(strtolower($row['area']), "you win!")) {
-    $myObj->choice1 = 'Congratulations';
-    $myObj->link1 = 'win';
-  }
-  $myObj->choice2 = $row['choice2'];
-  $myObj->link2 = $row['link2'];
-  $myObj->author = $row['author'];
+        $myObj->author = $row['author'];
 
-  $myObj = json_encode($myObj);
+        $myObj = json_encode($myObj);
 
-  echo $myObj;
+        echo $myObj;
 
+    }
+
+    mysqli_close($conn);
+} elseif ($type == "add") {
+    $table = $_POST['table'];
+    $old = $_POST['old'];
+    $choice = $_POST['choice'];
+
+    //loop link
+    if (isset($_POST['submitLink']) && $_POST['path'] != "") {
+        $new = $_POST['path'];
+        if ($choice) {
+            mysqli_query($conn, "UPDATE $table SET link$choice='$new' WHERE id='$old' LIMIT 1");
+        }
+
+    // update area
+    } elseif (isset($_POST['submitUpdate']) && $_POST['description'] != "") {
+
+        $queryUpdate = "UPDATE `$table` SET 
+            area = '" . mysqli_real_escape_string($conn, $_POST["description"]) . "', 
+            choice1 = '" . mysqli_real_escape_string($conn, $_POST["option1"]) . "', 
+            choice2 = '" . mysqli_real_escape_string($conn, $_POST["option2"]) . "', 
+            link1 = '" . $_POST["pathLink1"] . "', 
+            link2 = '" . $_POST["pathLink2"] . "', ";
+        if (isset($_POST['option3'])) {
+            $queryUpdate .= "choice3 = '" . mysqli_real_escape_string($conn, $_POST["option3"]) . "', 
+                link3 = '" . $_POST["pathLink3"] . "', ";
+        }
+        if (isset($_POST['areaColor'])) {
+            $queryUpdate .= "color = '" . mysqli_real_escape_string($conn, $_POST["areaColor"]) . "', ";
+        }
+        $queryUpdate .= "author = '" . mysqli_real_escape_string($conn, $_POST["author"]) . "'
+            WHERE `id` = $old LIMIT 1";
+        // echo $queryUpdate;
+        mysqli_query($conn, $queryUpdate);
+
+    //new area data
+    } elseif (isset($_POST['submit']) && $_POST['description'] != ""){
+
+        echo mysqli_insert_id($conn);
+
+        //take data from form
+        $string = "'" . mysqli_real_escape_string($conn, $_POST["description"]) . "' ,";
+        $string .= "'" . mysqli_real_escape_string($conn, $_POST["option1"]) . "' ,";
+        $string .= "'" . $_POST['pathLink1'] . "' ,";
+        $string .= "'" . mysqli_real_escape_string($conn, $_POST["option2"]) . "' ,";
+        $string .= "'" . $_POST['pathLink2'] . "' ,";
+        if (isset($_POST['option3'])) {
+            $string .= "'" . mysqli_real_escape_string($conn, $_POST["option3"]) . "' ,";
+            $string .= "'" . $_POST['pathLink3'] . "' ,";
+        }
+        if (isset($_POST['areaColor'])) {
+            $string .= "'" . mysqli_real_escape_string($conn, $_POST["areaColor"]) . "' ,";
+        }
+        $string .= "'" . mysqli_real_escape_string($conn, $_POST["author"]) . "'";
+        // echo $string;
+        
+        $queryInsert = "INSERT INTO $table (area, choice1, link1, choice2, link2, ";
+        if (isset($_POST['option3'])) {
+            $queryInsert .= "choice3, link3, ";
+        }
+        if (isset($_POST['areaColor'])) {
+            $queryInsert .= "color, ";
+        }
+        $queryInsert .= "author) VALUES ($string)";
+
+        // echo "<br>";
+        // echo $queryInsert;
+
+        mysqli_query($conn, $queryInsert);
+        $new = mysqli_insert_id($conn);
+
+        echo $new;
+
+        //enter into whichever choice you did
+        if ($choice) {
+            mysqli_query($conn, "UPDATE $table SET link$choice='$new' WHERE id='$old' LIMIT 1");
+        }
+
+    }
+
+    header("Location: new.php");
+    die;
+
+} elseif ($type == "myTables") {
+    $table = $_GET['table'];
+    $user = $_SESSION['user'];
+    // $user = "Dr. Frankenstein";
+    $function = $_GET['function'];
+
+    $sql = "SELECT `myTables` FROM `users` WHERE `username` = '$user' && `myTables` LIKE '%-($table)%'";
+    // echo $sql;
+    $result = mysqli_query($conn , $sql);
+
+    // print_r($result);
+
+    if (mysqli_fetch_array($result)) {
+        if ($function == "remove") {
+            $remove = "UPDATE `users` SET `myTables` = REPLACE(`myTables`, '-($table)', '') WHERE `username` = '$user'";
+            mysqli_query($conn, $remove);
+            echo "removed table from your list";
+            if ($_SESSION['scenario'] == $table) {
+                $_SESSION['scenario'] = "portal";
+            }
+        } else {
+            echo "already in myTables";
+        }
+        die;
+    } elseif ($function == "add") {
+        $update = "UPDATE `users` SET `myTables` = CONCAT(`myTables`, '-($table)') WHERE `username` = '$user'";
+        mysqli_query($conn, $update);
+        $_SESSION['scenario'] = $table;
+        echo "added table to your list";
+        // echo $update;
+    }
 }
-// echo "</table>";
 
-mysqli_close($conn);
 ?>

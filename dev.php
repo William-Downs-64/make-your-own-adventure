@@ -47,12 +47,6 @@ if (array_key_exists('scenario', $_POST)) {
     }
     $_SESSION['scenario'] = $_POST['scenario'];
 }
-if (array_key_exists('area', $_GET)) {
-    $_SESSION['area'] = $_GET['area'];
-}
-if (array_key_exists('area', $_SESSION)) {
-    $area = $_SESSION['area'];
-}
 
 if (!array_key_exists('scenario', $_SESSION)) {
     $_SESSION['scenario'] = "portal";
@@ -77,7 +71,7 @@ if ($username != "anonymous"){
         if ($row['creator'] == $username || str_contains($row['viewer'], "-($username)") || str_contains($row['viewer'], "-all")) {
             $view = true;
         }
-        if ($row['creator'] == $username || $username == "WieRD" || $username == "Willie") {
+        if ($row['creator'] == $username || $username == "WieRD") {
             $admin = true;
         }
     }
@@ -92,6 +86,22 @@ if (!$view) {
     $error .= "View Only";
     $errorType = "primary";
 }
+
+                
+echo '<select class="form-select" name="path" id="path" value="">';
+    echo '<option value="0">0=New Area</option>';
+$queryPath = "SELECT `area`, `id` FROM " . $_SESSION['scenario'];
+
+if ($resultPath = mysqli_query($conn, $queryPath)) {
+    while($path = mysqli_fetch_array($resultPath)) {
+        $area = substr($path['area'], 0, 80) . "...";
+        $thisId = $path['id'];
+        echo "<option value='$thisId'>$thisId=" . htmlspecialchars($area) . "</option>";
+    }
+}
+echo "</select>
+    <button type='button' class='btn btn-dark form-control mt-2' id='searchArea'>Search</button>";
+
 ?>
 
 <!DOCTYPE html>
@@ -154,13 +164,6 @@ if (!$view) {
 
             </tbody>
         </table>
-    </div>
-
-    <div class="debug">
-        <form method="get">
-            <input type="number" id="debugArea" name="area" value="<?php if (array_key_exists('area', $_SESSION)) { echo $_SESSION['area']; } ?>">
-            <button class="btn btn-dark" id="debugAreaButton">Set Area</button>
-        </form>
     </div>
 
     <div class="currentChoice container p-3 mt-4 border main-box">
@@ -228,7 +231,7 @@ if (!$view) {
                         while($path = mysqli_fetch_array($resultPath)) {
                             $area = substr($path['area'], 0, 80) . "...";
                             $thisId = $path['id'];
-                            echo "<option value='$thisId'>$thisId=" .  htmlspecialchars($area) . "</option>";
+                            echo "<option value='$thisId'>$thisId=$area</option>";
                         }
                     }
                     echo "</select>
@@ -245,9 +248,6 @@ if (!$view) {
 
     var id = 0;
     let debug = false;
-    <?php if ($username == "Willie") {
-        echo "debug = true;";
-    } ?>
     let table = "portal";
     let edit = false;
     let view = false;
@@ -288,12 +288,6 @@ if (!$view) {
 
     $("#tableSelector").val(table);
     loadArea(1,table);
-
-    if (debug == true) {
-    <?php if (array_key_exists("area", $_SESSION)) {
-        $area = $_SESSION['area'];
-        echo "loadArea($area, table);";
-    } ?>}
 
     function loadArea(area,table) {
         if (area == "") {
@@ -445,11 +439,6 @@ if (!$view) {
         loadArea(value, table);
     })
 
-    $("#debugArea").on("change", function() {
-        let area = $("#debugArea").val();
-        loadArea(area, table);
-    })
-
     function newPath(choice, oldId, table) {
         console.log(oldId);
         if (oldId == 0 || oldId == "undefined") {
@@ -480,15 +469,6 @@ if (!$view) {
             $(":root").css("--debug", "none");
         }
     })
-    
-    if (debug) {
-        $(":root").css("--debug", "inherit");
-        $("#debug-toggle").prop("checked", true);
-
-
-
-
-    }
 
     function displayError(message, type) {
         if (!message || message == "" || message == "undefined") {

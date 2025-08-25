@@ -13,147 +13,86 @@
           crossorigin="anonymous"></script>
 
   <style type="text/css">
-    .currentChoice {
-      margin-top: 10px;
-      width: 80%;
-      background-color: gray;
-      padding: 10px;
+
+    #review {
+        position: relative;
+        width: 200px;
+        height: 40px;
+    }
+    #reviewEdit {
+        position: relative;
+        width: 200px;
+        height: 40px;
     }
 
-    .history-container {
-      height: 500px;
-      overflow-y:scroll;
-      position: relative;
+    .star-holder {
+        display: inline-block;
+        width: 100%;
+        height: 40px;
+        background-image: url(images/star-empty.svg);
+        background-size: 40px;
+        position: absolute;
+        top: 0;
+        left: 0;
     }
-    .history-container thead {
-      position:sticky;
-      top: 0;
-      background-color: whitesmoke;
+    .star-holder.fill {
+        background-image: url(images/star-full.svg);
+        width: 50%;
     }
   </style>
 
 </head>
 <body>
 
-<form>
-  <select name="table" id="tableSelector">
-    <option value="">Select Table:</option>
-    <option>Portal</option>
-    <option>Island</option>
-    <option>New</option>
-    <option>Portal2</option>
-  </select>
-  <input type="number" id="areaCode">
-</form>
-<br>
-<div class="history-container">
-  <table>
-    <thead>
-      <tr>
-        <th>Area</th>
-        <th>choice1</th>
-        <th>link1</th>
-        <th>choice2</th>
-        <th>link2</th>
-      </tr>
-    </thead>
-    <tbody id="history">
-
-    </tbody>
-  </table>
-</div>
-
-<div class="currentChoice container p-3 mt-4 border main-box">
-  <table id="data">
-
-  </table>
-</div>
-<!-- <div id="txtHint"><b>Person info will be listed here...</b></div> -->
+    <div class="container">
+        <div id="review">
+            <div class="star-holder"></div>
+            <div class="star-holder full"></div>
+        </div>
+    </div>
+    <div class="container">
+        <div id="reviewEdit">
+            <div class="star-holder"></div>
+            <div class="star-holder fill"></div>
+        </div>
+        <input name="rating" id="rating" value="0">
+    </div>
 
 <script>
 
-var id = 0;
+    $(document).ready(function() {
+        let stars = 3;
+        let starWidth = (stars / 5) * 100;
+        $("#review .star-holder.fill").css("width", starWidth + "%");
 
-function showUser(str,table) {
-  if (str == "") {
-    document.getElementById("history").innerHTML = "";
-    return;
-  } else {
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-        // document.getElementById("data").innerHTML = this.responseText;
-        $("#history").append(this.responseText);
-        $("#data").html(this.responseText);
-      }
-    };
-    xmlhttp.open("GET",`ajax.php?id=${str}&table=${table}`,true);
-    xmlhttp.send();
-  }
-}
+        $("#reviewEdit .star-holder.fill").css("width", "0%");
+        $("#reviewEdit").on("mousemove", function(e) {
+            let offset = $(this).offset();
+            let relativeX = e.pageX - offset.left;
+            let totalWidth = $(this).width();
+            let percent = relativeX / totalWidth;
+            let fillWidth = Math.min(Math.max(percent, 0), 1) * 100;
+            fillWidth = Math.round(fillWidth / 10 + .5) * 10;
+            $("#reviewEdit .star-holder.fill").css("width", fillWidth + "%");
+        });
+        $("#reviewEdit").on("mouseleave", function() {
+            $("#reviewEdit .star-holder.fill").css("width", $("#rating").val() / 5 * 100 + "%");
+        });
+        $("#reviewEdit").on("click", function(e) {
+            let offset = $(this).offset();
+            let relativeX = e.pageX - offset.left;
+            let totalWidth = $(this).width();
+            let percent = relativeX / totalWidth;
+            stars = Math.min(Math.max(percent, 0), 1) * 10;
+            stars = Math.round(stars + 0.5) * 0.5;
+            let fillWidth = (stars / 5) * 100;
+            $("#reviewEdit .star-holder.fill").css("width", fillWidth + "%");
+            console.log("Selected stars: " + stars);
+            $("#rating").val(stars);
+        });
+    });
 
-$("#areaCode").on("change", function() {
-  let value = $(this).val();
-  id = value;
-  let table = $("#tableSelector").val();
-  showUser(value, table);
-})
 
-$(document).on("click", ".currentChoice button", function() {
-  let value = $(this).data("link");
-  let table = $("#tableSelector").val();
-  let choice = $(this).data("choice");
-
-  $("#" + id).css("background-color", "lightblue");
-  $(`#${id} button`).each(function() {
-    if ($(this).data("choice") != choice) {
-      $(this).remove();
-    }
-  })
-
-  if (value != 0) { 
-    showUser(value, table);
-    id = value;
-    console.log(id);
-  } else {
-    // let choice = $(this).data("choice");
-    let old = $(this).parents("tr").attr("id");
-    console.log(choice, old, table, this);
-    newPath(choice, old, table)
-  }
-})
-
-function newPath(choice, oldId, table) {
-  let html = `<form method='post' action='addPath.php'>
-                <label for='description'>What happens?</label>
-                <textarea id='area' name='description' class='form-control'></textarea>
-                <label for='option1' class=>Path 1</label>
-                <input type='text' id='option1' name='option1' class='form-control'>
-                <label for='option2'>Path 2</label>
-                <input type='text' id='option2' name='option2' class='form-control'>
-                <input type='text' id='author' name='author' class='form-control w-50 float-end mt-1' value='$username'>
-                <label for='author' class='float-end mt-2'>Author: </label>
-                <input type='hidden' name='old' value='${oldId}'>
-                <input type='hidden' name='choice' value='${choice}'>
-                <input type='hidden' name='table' value='${table}'>
-                <input type='submit' name='submit' id='submit' class='btn btn-primary form-control mt-2'>
-              </form>`;
-
-  $(".main-box").html(html);
-
-  // $(".main-box").on("click", "submit", function() {
-  //   var xmlhttp = new XMLHttpRequest();
-  //   xmlhttp.onreadystatechange = function() {
-  //     if (this.readyState == 4 && this.status == 200) {
-  //       // document.getElementById("data").innerHTML = this.responseText;
-  //       window.reload();
-  //     }
-  //   };
-  //   xmlhttp.open("GET",`addPath.php?oldId=${str}&table=${table}&choice=${choice}`,true);
-  //   xmlhttp.send();
-  // })
-
-}
 
 </script>
 

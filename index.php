@@ -2,7 +2,7 @@
     session_start();
 
     if(array_key_exists("id", $_SESSION) OR array_key_exists("id", $_COOKIE)) {
-        header("Location: ../new.php");
+        header("Location: new.php");
     }
 
     $error = "";
@@ -23,8 +23,9 @@
             if($result = mysqli_query($conn, $query)) {
                 if($row = mysqli_fetch_array($result)) {
                     $error .= "Error: That username is already used!";
-                }
-                else {
+                } elseif (preg_match('/[^A-Za-z0-9\s]/', $_POST['usernameSignUp'])) {
+                    $error = "Improper character detected! Letters, numbers, and spaces only!";
+                } else {
                     
                     $hash = password_hash(mysqli_real_escape_string($conn, $_POST['passwordSignUp']), PASSWORD_DEFAULT);
 
@@ -43,7 +44,7 @@
 
                     $_SESSION['user'] = $_POST['usernameSignUp'];
 
-                    header('Location: ../new.php');
+                    header('Location: new.php');
                     
                 }
             }
@@ -67,7 +68,7 @@
                             setcookie("id", $_POST['usernameLogin'], time() + 60 * 60 * 24);
                         }
                         
-                        header('Location: ../new.php');
+                        header('Location: new.php');
         
                     }
                     else {
@@ -111,12 +112,12 @@
           integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
           crossorigin="anonymous"></script>
 
-    <title>Underwater Missions</title>
+    <title>MYOA Login</title>
 
     <style type="text/css">
 
         body {
-            background-color: blue;
+            background-color: whitesmoke;
         }
 
         #signUp {
@@ -141,9 +142,9 @@
     <body>
 
         <div class="text-center mt-4 mx-auto p-4" id="head">
-            <h1>Underwater Missions</h1>
+            <h1>Make Your Own Adventure</h1>
 
-            <p>Support missionaries or become one yourself!</p>
+            <p>A game where you can play or create adventures!</p>
         
         </div>  
 
