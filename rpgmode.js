@@ -1,4 +1,4 @@
-const stats = [];
+let stats = [];
 stats["SCORE"] = 0;
 
 $("body").append(`<div class='rpg'>
@@ -50,13 +50,13 @@ function checkAbility(text) {
     let matches = text.match(/[A-Z]+[<>=][0-9\.]+/g)
     console.log(matches);
 
-    if (!matches || matches.length == 0) {
+    if (!matches || matches.length == 0 || debug == true) {
         return true;
     }
     for (i=0; i<matches.length; i++) {
         that = matches[i];
 
-        if (statCheck(that.match(/[A-Z]+/),that.match(/[0-9\.]+/),that.match(/[<>]/))) {
+        if (statCheck(that.match(/[A-Z]+/),that.match(/[0-9\.]+/),that.match(/[<>=]/))) {
             return false;
         }
     }
@@ -67,6 +67,7 @@ function statCheck(str, num, calc) {
     if (!stats[str] || stats[str] == undefined) {
         stats[str] = 0;
     }
+    console.log(calc);
     if (calc == "<" && stats[str] < parseFloat(num)) {
         return false;
     } else if (calc == ">" && stats[str] > parseFloat(num)) {
@@ -85,3 +86,11 @@ function renderStats(stat) {
         $(`#${stat}-counter`).html(stats[stat]);
     }
 }
+
+$("body").on("click", ".restart", function() {
+    stats = [];
+    stats["SCORE"] = 0;
+    console.log(stats);
+    $(".rpg").html(`
+        <div id='stat-SCORE'><h2>SCORE: <span id='SCORE-counter'></span></h2></div>`);
+});

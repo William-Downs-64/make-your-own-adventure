@@ -23,9 +23,13 @@ if (array_key_exists('user', $_SESSION)) {
     $username = $_SESSION['user'];
     echo "Welcome: $username";
     echo '<form method="post" id="logout" class="float-end">
-                <a href="new.php" class="btn btn-secondary">Play</a>
+                <a href="new.php" class="btn btn-success">Play</a>
                 <input type="submit" name="logOut" value="logout" class="btn btn-outline-primary">
             </form>';
+    echo '<form method="post" action="new.php" id="startPlay">
+            <input type="hidden" name="scenario" id="scenario" value="portal">
+            <input type="submit" class="d-none">
+        </form>';
 } else {
     echo "Not Logged in!";
     echo '<div id="login" class="float-end">
@@ -52,6 +56,8 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <script type="text/javascript" src="jquery-3.7.1.min.js"></script>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
@@ -73,7 +79,7 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
     <div id="editTable" class="d-none">
         <form method="post" class="container row">
             <div class="">
-                <label for="editTableName" class="col-3 h2">Edit Table: <span class="table-name"></span></label>
+                <label for="editTableName" class="col-3 h2">Edit Adventure: <span class="table-name"></span></label>
                 <input type="hidden" id="editTableName" name="tableName" class="hidden" readonly>
             </div>
             <div>View Priviledges:
@@ -103,25 +109,31 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
     </div>
 
     <div id="myOwnTables">
-        <h3>My Created Tables</h3>
-        <a href="createNew.php" class="btn btn-info">Create New Table</a>
+        <h3 class="text-center">My Created Adventures</h3>
+        <a href="createNew.php" class="btn btn-info">Create New Adventure</a>
         <div class="table-container container">
 
         </div>
         
     </div>
 
+    <hr>
+
     <div id="myTables">
-        <h3>My Tables</h3>
+        <h3 class="text-center">My Adventures</h3>
         <div class="table-container container">
             <div class="card adventure-card m-2" id="portal">
-                <div class="card-body">
+                <div class="card-header">
                     <h4 class="card-title">Portal</h4>
+                </div>
+                <div class="card-body">
                     <p>Description: The classic Make Your Own Adventure where anything can happen</p>
                     <p>Owner: WieRD</p>
                     <p>Editable: Yes</p>
                     <div class="buttonArea">
                         <button class="btn btn-danger" disabled>Immovable</button>
+                        <button class='btn btn-success play' data-scenario='portal'>Play</button>
+                        <a href="reviews.php?scenario=portal" class="btn btn-info">Reviews</a>
                     </div>
                 </div>
             </div>
@@ -129,8 +141,10 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
         </div>
     </div>
 
-    <div id="browseTables" class="bg-success">
-        <h3>All Tables</h3>
+    <hr>
+
+    <div id="browseTables">
+        <h3 class="text-center">All Adventures</h3>
         <div class="table-container container">
         
         </div>
@@ -162,17 +176,19 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
             this.location = location;
             this.editors = thatRow['editor'];
             this.viewers = thatRow['viewer'];
+            this.type = thatRow['type'];
             this.button = `<button class='btn btn-primary'>Error</button>`;
         }
 
         get _button() {
             this.button = "<button class='btn btn-primary switch'>Add</button>";
             if (this.location == "myTables") {
-                this.button = "<button class='btn btn-danger switch'>Remove</button>";
+                this.button = "<button class='btn btn-danger switch'>Remove</button><button class='btn btn-success play' data-scenario='" + this.name + "'>Play</button>";
             }
             if (this.location == "myOwnTables") {
-                this.button = "<button class='btn btn-success edit'>Edit Table</button>";
+                this.button = "<button class='btn btn-warning edit'>Edit Table</button><button class='btn btn-success play' data-scenario='" + this.name + "'>Play</button>";
             }
+            this.button += `<a href="reviews.php?scenario=${this.name}" class="btn btn-info">Reviews</a>`;
             return this.button;
         }
 
@@ -194,12 +210,16 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
                 }
 
                 $(`#${this.location} .table-container`).append(`
-                    <div class="card adventure-card m-2" id="${this.name}">
-                        <div class="card-body">
+                    <div class="card adventure-card m-2 type-${this.type}" id="${this.name}">
+                        
+                        <div class="card-header">
                             <h4 class="card-title">${spaceName}</h4>
+                        </div>
+                        <div class="card-body">
                             <p>Description: ${this.description}</p>
                             <p>Owner: ${this.owner}</p>
                             <p>Editable: ${edit}</p>
+                            <p>Type: ${this.type}</p>
                             <div class="buttonArea">
                                 ${this._button}
                             </div>
@@ -254,6 +274,8 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
         }
     ?>
 
+
+    //add or remove tables from your list
     $(document).on("click", "#browseTables button.switch", function() {
         let move = $(this).parents(".adventure-card");
         let thisTable = move.attr("id");
@@ -293,6 +315,15 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
 
     })
     
+
+    //dropdown cards on click
+    $(document).on("click", ".adventure-card .card-header", function() {
+        let cardBody = $(this).siblings(".card-body");
+        cardBody.toggleClass("show");
+        // cardBody.css("height", cardBody.hasClass("show") ? "fit-content" : "0px");
+    });
+
+    //edit tables
     $(document).on("click", "#myOwnTables button.edit", function() {
         let edit = $(this).parents(".adventure-card");
         let thisTable = myTables[edit.attr("id")];
@@ -323,14 +354,21 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
         $("#viewers").val("-all");
     })
     $("#viewerButtonNone").on("click", function() {
-        $("#viewers").val(`-(${username}`);
-        $("#editors").val(`-(${username}`);
+        $("#viewers").val(`-(${username})`);
+        $("#editors").val(`-(${username})`);
     })
 
     //add and remove editors for the edit table
     $("#editorButton").on("click", function() {
         if ($("#addEditor").val().length > 0) {
-            $("#editors").val($("#editors").val()+"-("+$("#addEditor").val()+")");
+            let addString = "-("+$("#addEditor").val()+")";
+
+            $("#editors").val($("#editors").val()+addString);
+            if (!$("#viewers").val().includes(addString) && !$("#viewers").val().includes("-all")) {
+                $("#viewers").val($("#viewers").val()+addString);
+            }
+
+
             $("#addEditor").val("");
         }
     })
@@ -343,7 +381,13 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
         $("#editors").val("-all");
     })
     $("#editorButtonNone").on("click", function() {
-        $("#editors").val(`-(${username}`);
+        $("#editors").val(`-(${username})`);
+    })
+
+    $(document).on("click", "button.play", function() {
+        let scenario = $(this).data("scenario");
+        $("#scenario").val(scenario);
+        $("#startPlay").submit();
     })
 
 </script>

@@ -66,32 +66,21 @@ if ($type == "load") {
     // update area
     } elseif (isset($_POST['submitUpdate']) && $_POST['description'] != "") {
 
-        // $string = "'" . mysqli_real_escape_string($conn, $_POST["description"]) . "' ,";
-        // $string .= "'" . mysqli_real_escape_string($conn, $_POST["option1"]) . "' ,";
-        // $string .= "'" . mysqli_real_escape_string($conn, $_POST["option2"]) . "' ,";
-        // if (isset($_POST['option3'])) {
-        //     $string .= "'" . mysqli_real_escape_string($conn, $_POST["option3"]) . "' ,";
-        // }
-        // $string .= "'" . mysqli_real_escape_string($conn, $_POST["author"]) . "'";
-        // //echo $string;
-        // $queryUpdate = "UPDATE `$table` SET (area, choice1, choice2, author) VALUES ($string) WHERE `id` = '$old' LIMIT 1";
         $queryUpdate = "UPDATE `$table` SET 
-            area = '" . mysqli_real_escape_string($conn, $_POST["description"]) . "',
-            choice1 = '" . mysqli_real_escape_string($conn, $_POST["option1"]) . "',
-            choice2 = '" . mysqli_real_escape_string($conn, $_POST["option2"]) . "' ,";
+            area = '" . mysqli_real_escape_string($conn, $_POST["description"]) . "', 
+            choice1 = '" . mysqli_real_escape_string($conn, $_POST["option1"]) . "', 
+            choice2 = '" . mysqli_real_escape_string($conn, $_POST["option2"]) . "', 
+            link1 = '" . $_POST["pathLink1"] . "', 
+            link2 = '" . $_POST["pathLink2"] . "', ";
         if (isset($_POST['option3'])) {
-            $queryUpdate .= "choice3 = '" . mysqli_real_escape_string($conn, $_POST["option3"]) . "' ,";
+            $queryUpdate .= "choice3 = '" . mysqli_real_escape_string($conn, $_POST["option3"]) . "', 
+                link3 = '" . $_POST["pathLink3"] . "', ";
         }
         if (isset($_POST['areaColor'])) {
-            $queryUpdate .= "color = '" . mysqli_real_escape_string($conn, $_POST["areaColor"]) . "' ,";
+            $queryUpdate .= "color = '" . mysqli_real_escape_string($conn, $_POST["areaColor"]) . "', ";
         }
         $queryUpdate .= "author = '" . mysqli_real_escape_string($conn, $_POST["author"]) . "'
             WHERE `id` = $old LIMIT 1";
-
-        // if (isset($_POST['option3'])) {
-        //     $queryUpdate = "UPDATE `$table` SET (area, choice1, choice2, choice3, author) VALUES ($string) WHERE `id` = '$old' LIMIT 1";
-        // }
-
         // echo $queryUpdate;
         mysqli_query($conn, $queryUpdate);
 
@@ -103,9 +92,12 @@ if ($type == "load") {
         //take data from form
         $string = "'" . mysqli_real_escape_string($conn, $_POST["description"]) . "' ,";
         $string .= "'" . mysqli_real_escape_string($conn, $_POST["option1"]) . "' ,";
+        $string .= "'" . $_POST['pathLink1'] . "' ,";
         $string .= "'" . mysqli_real_escape_string($conn, $_POST["option2"]) . "' ,";
+        $string .= "'" . $_POST['pathLink2'] . "' ,";
         if (isset($_POST['option3'])) {
             $string .= "'" . mysqli_real_escape_string($conn, $_POST["option3"]) . "' ,";
+            $string .= "'" . $_POST['pathLink3'] . "' ,";
         }
         if (isset($_POST['areaColor'])) {
             $string .= "'" . mysqli_real_escape_string($conn, $_POST["areaColor"]) . "' ,";
@@ -113,9 +105,9 @@ if ($type == "load") {
         $string .= "'" . mysqli_real_escape_string($conn, $_POST["author"]) . "'";
         // echo $string;
         
-        $queryInsert = "INSERT INTO $table (area, choice1, choice2, ";
+        $queryInsert = "INSERT INTO $table (area, choice1, link1, choice2, link2, ";
         if (isset($_POST['option3'])) {
-            $queryInsert .= "choice3, ";
+            $queryInsert .= "choice3, link3, ";
         }
         if (isset($_POST['areaColor'])) {
             $queryInsert .= "color, ";

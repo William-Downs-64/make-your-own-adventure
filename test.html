@@ -13,39 +13,85 @@
           crossorigin="anonymous"></script>
 
   <style type="text/css">
-    .currentChoice {
-      margin-top: 10px;
-      width: 80%;
-      background-color: gray;
-      padding: 10px;
+
+    #review {
+        position: relative;
+        width: 200px;
+        height: 40px;
+    }
+    #reviewEdit {
+        position: relative;
+        width: 200px;
+        height: 40px;
     }
 
-    .history-container {
-      height: 500px;
-      overflow-y:scroll;
-      position: relative;
+    .star-holder {
+        display: inline-block;
+        width: 100%;
+        height: 40px;
+        background-image: url(images/star-empty.svg);
+        background-size: 40px;
+        position: absolute;
+        top: 0;
+        left: 0;
     }
-    .history-container thead {
-      position:sticky;
-      top: 0;
-      background-color: whitesmoke;
+    .star-holder.fill {
+        background-image: url(images/star-full.svg);
+        width: 50%;
     }
   </style>
 
 </head>
 <body>
 
-<form method="get">
-    <input name="color" type="color" id="colorSelect">
-    <input type="submit">
-</form>
-
+    <div class="container">
+        <div id="review">
+            <div class="star-holder"></div>
+            <div class="star-holder full"></div>
+        </div>
+    </div>
+    <div class="container">
+        <div id="reviewEdit">
+            <div class="star-holder"></div>
+            <div class="star-holder fill"></div>
+        </div>
+        <input name="rating" id="rating" value="0">
+    </div>
 
 <script>
 
-$('#colorSelect').on("change", function() {
-    $("body").css("background-color", $(this).val());
-})
+    $(document).ready(function() {
+        let stars = 3;
+        let starWidth = (stars / 5) * 100;
+        $("#review .star-holder.fill").css("width", starWidth + "%");
+
+        $("#reviewEdit .star-holder.fill").css("width", "0%");
+        $("#reviewEdit").on("mousemove", function(e) {
+            let offset = $(this).offset();
+            let relativeX = e.pageX - offset.left;
+            let totalWidth = $(this).width();
+            let percent = relativeX / totalWidth;
+            let fillWidth = Math.min(Math.max(percent, 0), 1) * 100;
+            fillWidth = Math.round(fillWidth / 10 + .5) * 10;
+            $("#reviewEdit .star-holder.fill").css("width", fillWidth + "%");
+        });
+        $("#reviewEdit").on("mouseleave", function() {
+            $("#reviewEdit .star-holder.fill").css("width", $("#rating").val() / 5 * 100 + "%");
+        });
+        $("#reviewEdit").on("click", function(e) {
+            let offset = $(this).offset();
+            let relativeX = e.pageX - offset.left;
+            let totalWidth = $(this).width();
+            let percent = relativeX / totalWidth;
+            stars = Math.min(Math.max(percent, 0), 1) * 10;
+            stars = Math.round(stars + 0.5) * 0.5;
+            let fillWidth = (stars / 5) * 100;
+            $("#reviewEdit .star-holder.fill").css("width", fillWidth + "%");
+            console.log("Selected stars: " + stars);
+            $("#rating").val(stars);
+        });
+    });
+
 
 
 </script>

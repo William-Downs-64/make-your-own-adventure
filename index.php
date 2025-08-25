@@ -2,7 +2,7 @@
     session_start();
 
     if(array_key_exists("id", $_SESSION) OR array_key_exists("id", $_COOKIE)) {
-        header("Location: ../new.php");
+        header("Location: new.php");
     }
 
     $error = "";
@@ -44,7 +44,7 @@
 
                     $_SESSION['user'] = $_POST['usernameSignUp'];
 
-                    header('Location: ../new.php');
+                    header('Location: new.php');
                     
                 }
             }
@@ -65,7 +65,7 @@
                         // $_SESSION[''] = $row['code'];
 
                         if($_POST['stayLogin']) {
-                            setcookie("userId", $_POST['usernameLogin'], time() + 60 * 60 * 24);
+                            setcookie("id", $_POST['usernameLogin'], time() + 60 * 60 * 24);
                         }
                         
                         header('Location: new.php');
