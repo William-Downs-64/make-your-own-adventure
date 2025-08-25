@@ -55,6 +55,10 @@ if ($type == "load") {
     $table = $_POST['table'];
     $old = $_POST['old'];
     $choice = $_POST['choice'];
+    $next = 1;
+    if (isset($_POST['stay'])) {
+        $next = $old;
+    }
 
     //loop link
     if (isset($_POST['submitLink']) && $_POST['path'] != "") {
@@ -129,7 +133,7 @@ if ($type == "load") {
 
     }
 
-    header("Location: new.php");
+    header("Location: new.php?area=$next");
     die;
 
 } elseif ($type == "myTables") {

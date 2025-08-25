@@ -51,7 +51,7 @@ if (array_key_exists('area', $_GET)) {
     $_SESSION['area'] = $_GET['area'];
 }
 if (array_key_exists('area', $_SESSION)) {
-    $area = $_SESSION['area'];
+    $loadArea = $_SESSION['area'];
 }
 
 if (!array_key_exists('scenario', $_SESSION)) {
@@ -184,35 +184,43 @@ if (!$view) {
             <h4 class="new-path">New Path Found!</h4>
             <form method='post' action='ajax.php?type=add' id='addPathForm'>
                 <label for='description'>What happens?</label>
-                <textarea id='area' name='description' class='form-control'></textarea>
+                <textarea id='area' name='description' class='form-control areaInput'></textarea>
                 
                 <button class='colorToggle btn btn-info' type='button'>Add Color</button>
                 <div class='colorInput'></div>
                 <br>
                 <div class="row m-0">
                     <label for='option1' class=>Path 1</label>
-                    <input type='text' id='option1' name='option1' class='form-control'>
+                    <input type='text' id='option1' name='option1' class='form-control areaInput'>
                     <button type='button' class='btn btn-outline-dark loopLinkPath col-4' id='loop1' data-loop='1'>Loop Link</button>
                     <select class='form-select col pathSelect' name='pathLink1' id='pathLink1'><option value='0' class='default'>Link: <span>0</span></option></select>
 
                     <label for='option2'>Path 2</label>
-                    <input type='text' id='option2' name='option2' class='form-control'>
+                    <input type='text' id='option2' name='option2' class='form-control areaInput'>
                     <button type='button' class='btn btn-outline-dark loopLinkPath col-4' id='loop2' data-loop='2'>Loop Link</button>
                     <select class='form-select col pathSelect' name='pathLink2' id='pathLink2'><option value='0' class='default'>Link: <span>0</span></option></select>
                     
                     <?php if ($tableType == "Three" || $tableType == "RPG") {echo "
                         <label for='option3'>Path 3</label>
-                        <input type='text' id='option3' name='option3' class='form-control'>
+                        <input type='text' id='option3' name='option3' class='form-control areaInput'>
                         <button type='button' class='btn btn-outline-dark loopLinkPath col-4' id='loop3' data-loop='3'>Loop Link</button>
                         <select class='form-select col pathSelect' name='pathLink3' id='pathLink3'><option value='0' class='default'>Link: <span>0</span></option></select>
                     ";} ?>
+                </div>
+                <div id='toggleRPG'></div>
+                <div id='rpg' class='collapse'>
+                    <div id='addChange'></div>
+                    <div id='addRule'></div>
                 </div>
                 
                 <div class='d-flex w-100 flex-row-reverse'>
                     <input type='text' id='newPathAuthor' name='author' class='form-control w-50 align-end mt-1' value=''>
                     <label for='author' class='align-end mt-2'>Author: </label>
                 </div>
-                
+
+                <input type='checkbox' name='stay' id='stay' class='form-check-input'>
+                <label for='stay' class='form-check-label'>Stay?</label>
+
                 <input type='hidden' name='old' value='' id='oldId'>
                 <input type='hidden' name='choice' value='' id='oldChoice'>
                 <input type='hidden' name='table' value='' id='oldTable'>
@@ -246,7 +254,7 @@ if (!$view) {
     var id = 0;
     let debug = false;
     <?php if ($username == "Willie") {
-        echo "debug = true;";
+        // echo "debug = true;";
     } ?>
     let table = "portal";
     let edit = false;
@@ -254,6 +262,7 @@ if (!$view) {
     let rpg = false;
     let update = false;
     let areaColor = null;
+    let object = {};
 
     <?php if (array_key_exists("scenario", $_SESSION)) {
         echo "table = '" . $_SESSION['scenario'] . "';";
@@ -289,11 +298,11 @@ if (!$view) {
     $("#tableSelector").val(table);
     loadArea(1,table);
 
-    if (debug == true) {
-    <?php if (array_key_exists("area", $_SESSION)) {
-        $area = $_SESSION['area'];
-        echo "loadArea($area, table);";
-    } ?>}
+    // if (debug == true) {
+    <?php if (array_key_exists("area", $_GET)) {
+        $loadArea = $_GET['area'];
+        echo "loadArea($loadArea, table);";
+    } ?>
 
     function loadArea(area,table) {
         if (area == "") {
@@ -309,7 +318,7 @@ if (!$view) {
                         newPath(0,0,table);
                         return;
                     } else {
-                        let object = JSON.parse(this.responseText);
+                        object = JSON.parse(this.responseText);
 
                         let buttonHtml = `<button class='btn btn-primary col-md' data-choice='1' data-link='${object.link1}'><span class="choice-text">${object.choice1}</span><span class="debug">(${object.link1})</span></button>`;
                         if (object.link1 == 'win') {
@@ -336,11 +345,9 @@ if (!$view) {
                         $("#choiceButtons").html(buttonHtml);
 
                         if (rpg) {
-                            checkScore(object.area);
+                            checkScore(object.area, $("#areaDescription"));
                             $("#choiceButtons button").each(function() {
-                                if (!checkAbility($(this).text())) {
-                                    $(this).addClass("disabled");
-                                }
+                                checkAbility($(this).find(".choice-text").text(), $(this));
                             })
                         }
 
@@ -379,7 +386,7 @@ if (!$view) {
         let text = $(this).html();
 
         if (rpg) {
-            checkScore($(this).text());
+            checkScore($(this).text(), $(this));
         }
 
         $("#" + id).css("background-color", "lightblue");
@@ -410,10 +417,10 @@ if (!$view) {
     })
 
     $("#editPath").on("click", function() {
-        $("#area").val($("#areaDescription").html());
-        $("#option1").val($("button[data-choice='1'] .choice-text").text());
-        $("#option2").val($("button[data-choice='2'] .choice-text").text());
-        $("#option3").val($("button[data-choice='3'] .choice-text").text());
+        $("#area").val(String(object.area));
+        $("#option1").val(String(object.choice1));
+        $("#option2").val(String(object.choice2));
+        $("#option3").val(String(object.choice3));
         $(".pathSelect").css("display", "block");
         // $("#pathLink1").html('<option>'+$("button[data-choice='1']").data("link")+'</option>');
         // $("#pathLink2").html('<option>'+$("button[data-choice='2']").data("link")+'</option>');

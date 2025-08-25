@@ -116,6 +116,32 @@ body {
     margin-top: 30px;
 }
 
+#addRule, #addChange {
+    margin-top: 10px;
+}
+#rule-name, #change-name {
+    text-transform: uppercase;
+}
+
+.rpg-replace {
+    color: green;
+    font-weight: bold;
+}
+
+.rpg-rule {
+    color: rgb(0, 205, 0);
+    font-weight: bold;
+}
+
+.disabled .rpg-rule {
+    color: rgb(137, 0, 0);
+}
+
+.rpg-change {
+    color: rgb(0, 0, 61);
+    font-weight: bold;
+}
+
 .adventure-card.type-RPG .card-header {
     background-color: rgb(26, 164, 26);
 }
