@@ -1,5 +1,6 @@
 let stats = [];
 stats["SCORE"] = 0;
+stats["CHECKPOINT"] = 1;
 // let variables = [];
 
 $("body").append(`<div class='rpg'>
@@ -8,11 +9,19 @@ $("body").append(`<div class='rpg'>
 function checkScore(text, container) {
     let matches = text.match(/[A-Z]+[\+\-=][0-9\.]+/g);
     let wordMatches = text.match(/[A-Z]+=[A-Za-z]+/g);
+    let checkpoint = text.includes("CHECKPOINT");
+
+    if (checkpoint) {
+        let saveArea = $("#currentArea").val();
+        stats["CHECKPOINT"] = saveArea;
+        console.log("Checkpoint set to " + saveArea);
+    }
 
     if (matches) {
         for (i=0; i<matches.length; i++) {
             that = matches[i];
             statChange(that.match(/[A-Z]+/),that.match(/[0-9\.]+/),that.match(/[\+\-=]/))
+            displayError(that, "info")
         }
     }
     // Handle word matches
@@ -31,7 +40,22 @@ function rpgFormat(text, container) {
     let replacing = text.match(/\?[A-Z]+/g);
     let rules = text.match(/\(?[A-Z]+([<>]=?|==)[0-9\.A-Za-z]+\)?/g);
     let changes = text.match(/\(?[A-Z]+[\+\-=][0-9\.A-Za-z]+\)?/g);
+    
+    // let inputField = text.match(/INPUT:[A-Z]+/);
 
+    // if (inputField) {
+    //     let inputName = inputField[0].split(":")[1];
+
+    //     let html = `
+    //     <div class="input-group">
+    //         <span class="input-group-text">${inputName}:</span>
+    //         <input type='text' id='${inputName}' class='rpg-input form-control' placeholder='Enter ${inputName}'>
+    //         <div class="input-group-append">
+    //             <button class="btn btn-secondary" type="button" data-choice="1" data-link="">Submit</button>
+    //         </div>
+    //     </div>`;
+    //     container.html(html);
+    // }
     if (replacing) {
         for (i=0; i<replacing.length; i++) {
             that = replacing[i].replace("?", "");
@@ -56,6 +80,15 @@ function rpgFormat(text, container) {
         for (i=0; i<changes.length; i++) {
             that = changes[i];
             text = text.replace(that, `<span class='rpg-change'>${that}</span>`);
+            container.html(text);
+        }
+    }
+
+    let hidden = text.match(/\[.*\]/);
+    if (hidden) {
+        for (i=0; i<hidden.length; i++) {
+            that = hidden[i];
+            text = text.replace(that, `<span class='debug'>${that}</span>`);
             container.html(text);
         }
     }
@@ -91,11 +124,17 @@ function wordChange(type, word) {
 }
 
 function checkAbility(text, button) {
-    let matches = text.match(/[A-Z]+[<>=]=?[0-9\.A-Za-z]+/g)
+    let matches = text.match(/[A-Z]+[<>=]=?[0-9\.A-Za-z]+/g);
+    let returnValue = text.includes("RETURN");
     console.log(matches);
     
 
     rpgFormat(text, button.find(".choice-text"));
+
+    if (returnValue) {
+        console.log("Return to checkpoint", stats["CHECKPOINT"]);
+        button.data("link", stats["CHECKPOINT"]);
+    }
 
     if (!matches || matches.length == 0 || debug == true) {
         return button.removeClass("disabled");

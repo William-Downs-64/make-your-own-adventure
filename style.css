@@ -79,6 +79,44 @@ body {
     background-color: lightblue;
 }
 
+/* Button colors */
+#choiceButtons .btn{
+    color: black;
+}
+#choiceButtons .btn.disabled {
+    background-color: rgb(173, 173, 173);
+    color: rgb(125, 125, 125);
+}
+.btn-path1 {
+    background-color: rgb(61, 170, 101);
+}
+.btn-path1:hover {
+    background-color: rgb(36, 151, 36);
+}
+.btn-path2 {
+    background-color: rgb(255, 255, 112);
+}
+.btn-path2:hover {
+    background-color: rgb(255, 255, 49);
+}
+.btn-path3 {
+    background-color: rgb(105, 97, 192);
+}
+.btn-path3:hover {
+    background-color: rgb(90, 83, 168);
+}
+.btn-pathWin {
+    background: linear-gradient(blue, purple);
+}
+.btn-pathWin:hover {
+    background: linear-gradient(purple, blue);
+}
+.btn-pathLose {
+    background-color: red;
+}
+.btn-pathLose:hover {
+    background-color: darkred;
+}
 
 /* Browse Styling */
 .head {
@@ -129,7 +167,7 @@ body {
 }
 
 .rpg-rule {
-    color: rgb(0, 205, 0);
+    color: rgb(6, 47, 6);
     font-weight: bold;
 }
 
@@ -138,7 +176,7 @@ body {
 }
 
 .rpg-change {
-    color: rgb(0, 0, 61);
+    color: rgb(0, 0, 117);
     font-weight: bold;
 }
 

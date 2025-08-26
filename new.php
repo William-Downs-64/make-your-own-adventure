@@ -182,6 +182,7 @@ if (!$view) {
                 <p id="old-choice" class="btn btn-secondary disabled"></p>
             </div>
             <h4 class="new-path">New Path Found!</h4>
+            <button class='btn btn-outline-secondary float-end' id='backBtn'>Back</button>
             <form method='post' action='ajax.php?type=add' id='addPathForm'>
                 <label for='description'>What happens?</label>
                 <textarea id='area' name='description' class='form-control areaInput'></textarea>
@@ -254,7 +255,7 @@ if (!$view) {
     var id = 0;
     let debug = false;
     <?php if ($username == "Willie") {
-        // echo "debug = true;";
+        echo "debug = true;";
     } ?>
     let table = "portal";
     let edit = false;
@@ -284,7 +285,8 @@ if (!$view) {
         
         if (username == "anonymous" && table == "portal") {
             $("#addPathForm").html(`You don't have access to add to this!<br>Login to be able to edit.<br>
-                <button class='restart btn btn-primary'>Restart</button><a type='button' href='index.php' class='btn btn-outline-primary'>Login</a>`);
+                <button class='restart btn btn-primary'>Restart</button>
+                <a type='button' href='index.php' class='btn btn-outline-primary'>Login</a>`);
             $("#tableSelector").addClass("disabled");
             displayError("Login to view other tables", "warning");
         } else {
@@ -320,18 +322,18 @@ if (!$view) {
                     } else {
                         object = JSON.parse(this.responseText);
 
-                        let buttonHtml = `<button class='btn btn-primary col-md' data-choice='1' data-link='${object.link1}'><span class="choice-text">${object.choice1}</span><span class="debug">(${object.link1})</span></button>`;
+                        let buttonHtml = `<button class='btn btn-path1 col-md' data-choice='1' data-link='${object.link1}'><span class="choice-text">${object.choice1}</span><span class="debug">(${object.link1})</span></button>`;
                         if (object.link1 == 'win') {
-                            buttonHtml = `<button class='btn btn-info col-md' data-choice='1' data-link='1'><span class="choice-text">${object.choice1}</span><span class="debug">(${object.link1})</span></button>`
+                            buttonHtml = `<button class='btn btn-pathWin col-md' data-choice='1' data-link='1'><span class="choice-text">${object.choice1}</span><span class="debug">(${object.link1})</span></button>`
                         }
                         if (!object.choice1) {
-                            buttonHtml = `<button class='btn btn-danger col-md restart' data-choice='1' data-link='1'><span class="choice-text"></span>Restart</button>`
+                            buttonHtml = `<button class='btn btn-pathLose col-md restart' data-choice='1' data-link='1'><span class="choice-text"></span>Restart</button>`
                         }
                         if (object.choice2) {
-                            buttonHtml += `<button class='btn btn-warning col-md' data-choice='2' data-link='${object.link2}'><span class="choice-text">${object.choice2}</span><span class="debug">(${object.link2})</span></button>`
+                            buttonHtml += `<button class='btn btn-path2 col-md' data-choice='2' data-link='${object.link2}'><span class="choice-text">${object.choice2}</span><span class="debug">(${object.link2})</span></button>`
                         }
                         if (object.choice3) {
-                            buttonHtml += `<button class='btn btn-success col-md' data-choice='3' data-link='${object.link3}'><span class="choice-text">${object.choice3}</span><span class="debug">(${object.link3})</span></button>`
+                            buttonHtml += `<button class='btn btn-path3 col-md' data-choice='3' data-link='${object.link3}'><span class="choice-text">${object.choice3}</span><span class="debug">(${object.link3})</span></button>`
                         }
                         if (object.color) {
                             $("body").css("background-color", object.color);
@@ -377,6 +379,10 @@ if (!$view) {
         $("#inputData").hide();
         $("#data").show();
         loadArea(id, table);
+    })
+    $("#backBtn").on("click", function() {
+        $("#inputData").hide();
+        $("#data").show();
     })
 
     $(document).on("click", ".currentChoice #choiceButtons button", function() {
@@ -507,7 +513,11 @@ if (!$view) {
             buttonHtml = '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
         }
 
-        $("#errorHolder").append(`<div class="alert alert-${type} error">${message}${buttonHtml}</div>`);
+        let thisDiv = $(`<div class="alert alert-${type} error">${message}${buttonHtml}</div>`);
+        $("#errorHolder").append(thisDiv);
+        setTimeout(() => {
+            thisDiv.remove();
+        }, 3000);
     }
 
     displayError(<?php echo "`$error`, '$errorType'";?>);

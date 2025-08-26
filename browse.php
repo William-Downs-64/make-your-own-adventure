@@ -379,6 +379,7 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
     })
     $("#editorButtonAll").on("click", function() {
         $("#editors").val("-all");
+        $("#viewers").val("-all");
     })
     $("#editorButtonNone").on("click", function() {
         $("#editors").val(`-(${username})`);
