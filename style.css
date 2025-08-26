@@ -1,10 +1,93 @@
+/* Default Theme */
 :root {
     --debug: none;
     --star-size: 40px;
+
+    --btn1-color: rgb(112, 112, 201);
+    --btn2-color: rgb(87, 145, 87);
+    --btn3-color: rgb(213, 213, 107);
+
+    --btn1-hover: rgb(91, 91, 199);
+    --btn2-hover: rgb(96, 167, 96);
+    --btn3-hover: rgb(192, 218, 90);
+
+    --btnWin-color: rgb(219, 0, 219);
+    --btnLose-color: rgb(189, 30, 30);
+    --btnWin-hover: rgb(150, 34, 199);
+    --btnLose-hover: rgb(145, 0, 0);
+
+    --btnDisabled: lightgray;
+    --btnDisabled-text: gray;
+
+    --btnText-color: black;
+
+    --main-box-bg: whitesmoke;
+    --main-box-text-color: black;
+
+    --rpg-replace-color: rgb(0, 82, 0);
+    --rpg-rule-color: rgb(43, 4, 56);
+    --rpg-rule-fail: rgb(137, 0, 0);
+    --rpg-change-color: rgb(0, 0, 117);
 }
 
 body {
     transition: background-color 0.8s ease;
+}
+
+/* Additional Themes */
+body.theme1 {
+    --btn1-color: rgb(0, 0, 156);
+    --btn2-color: rgb(0, 95, 0);
+    --btn3-color: rgb(167, 94, 0);
+
+    --btn1-hover: rgb(0, 0, 255);
+    --btn2-hover: rgb(0, 145, 0);
+    --btn3-hover: rgb(255, 166, 0);
+
+    --btnWin-color: rgb(20, 239, 255);
+    --btnLose-color: rgb(71, 0, 0);
+    --btnWin-hover: rgb(41, 205, 205);
+    --btnLose-hover: rgb(0, 0, 0);
+
+    --btnDisabled: lightgray;
+    --btnDisabled-text: gray;
+
+    --btnText-color: rgb(255, 255, 255);
+
+    --main-box-bg: rgb(244, 255, 163);
+    --main-box-text-color: rgb(37, 25, 10);
+
+    --rpg-replace-color: rgb(70, 224, 70);
+    --rpg-rule-color: rgb(164, 0, 219);
+    --rpg-rule-fail: rgb(211, 36, 36);
+    --rpg-change-color: rgb(0, 149, 248);
+}
+body.theme2 {
+    --btn1-color: rgb(118, 139, 158);
+    --btn2-color: rgb(129, 154, 129);
+    --btn3-color: rgb(191, 160, 160);
+
+    --btn1-hover: rgb(156, 156, 156);
+    --btn2-hover: rgb(147, 147, 147);
+    --btn3-hover: rgb(171, 152, 152);
+
+    --btnWin-color: rgb(218, 224, 133);
+    --btnLose-color: rgb(139, 105, 131);
+    --btnWin-hover: rgb(236, 236, 236);
+    --btnLose-hover: rgb(116, 116, 116);
+
+    --btnDisabled: lightgray;
+    --btnDisabled-text: gray;
+
+    --btnText-color: rgb(0, 0, 0);
+
+    --main-box-bg: rgb(255, 255, 255);
+    --main-box-text-color: rgb(40, 40, 40);
+
+    --rpg-replace-color: rgb(53, 86, 53);
+    --rpg-rule-color: rgb(82, 67, 87);
+    --rpg-rule-fail: rgb(74, 27, 27);
+    --rpg-change-color: rgb(31, 30, 63);
 }
 
 #errorHolder {
@@ -36,11 +119,12 @@ body {
     display: none;
 }
 
-.currentChoice {
+.main-box {
     margin-top: 10px;
     width: 80%;
-    background-color: whitesmoke;
+    background-color: var(--main-box-bg);
     padding: 10px;
+    color: var(--main-box-text-color);
 }
 
 .history-container {
@@ -81,42 +165,22 @@ body {
 
 /* Button colors */
 #choiceButtons .btn{
-    color: black;
+    color: var(--btnText-color);
 }
 #choiceButtons .btn.disabled {
-    background-color: rgb(173, 173, 173);
-    color: rgb(125, 125, 125);
+    background-color: var(--btnDisabled);
+    color: var(--btnDisabled-text);
 }
-.btn-path1 {
-    background-color: rgb(61, 170, 101);
-}
-.btn-path1:hover {
-    background-color: rgb(36, 151, 36);
-}
-.btn-path2 {
-    background-color: rgb(255, 255, 112);
-}
-.btn-path2:hover {
-    background-color: rgb(255, 255, 49);
-}
-.btn-path3 {
-    background-color: rgb(105, 97, 192);
-}
-.btn-path3:hover {
-    background-color: rgb(90, 83, 168);
-}
-.btn-pathWin {
-    background: linear-gradient(blue, purple);
-}
-.btn-pathWin:hover {
-    background: linear-gradient(purple, blue);
-}
-.btn-pathLose {
-    background-color: red;
-}
-.btn-pathLose:hover {
-    background-color: darkred;
-}
+.btn-path1 {background: var(--btn1-color)}
+.btn-path1:hover {background: var(--btn1-hover)}
+.btn-path2 {background: var(--btn2-color);}
+.btn-path2:hover {background: var(--btn2-hover);}
+.btn-path3 {background: var(--btn3-color);}
+.btn-path3:hover {background: var(--btn3-hover);}
+.btn-pathWin {background: var(--btnWin-color);}
+.btn-pathWin:hover {background: var(--btnWin-hover);}
+.btn-pathLose {background: var(--btnLose-color);}
+.btn-pathLose:hover {background: var(--btnLose-hover);}
 
 /* Browse Styling */
 .head {
@@ -162,24 +226,26 @@ body {
 }
 
 .rpg-replace {
-    color: green;
+    color: var(--rpg-replace-color);
     font-weight: bold;
 }
 
 .rpg-rule {
-    color: rgb(6, 47, 6);
+    color: var(--rpg-rule-color);
     font-weight: bold;
 }
 
 .disabled .rpg-rule {
-    color: rgb(137, 0, 0);
+    color: var(--rpg-rule-fail);
 }
 
 .rpg-change {
-    color: rgb(0, 0, 117);
+    color: var(--rpg-change-color);
     font-weight: bold;
 }
 
+
+/* Browse Tables */
 .adventure-card.type-RPG .card-header {
     background-color: rgb(26, 164, 26);
 }

@@ -2,6 +2,15 @@
 session_start();
 
 $type = $_GET['type'];
+if (array_key_exists("table", $_POST)) {
+    $table = $_POST['table'];
+}
+if (array_key_exists("old", $_POST)) {
+    $old = $_POST['old'];
+}
+if (array_key_exists("choice", $_POST)) {
+    $choice = $_POST['choice'];
+}
 
 $conn = new mysqli("localhost", "root", "", "cyoa");
 
@@ -10,6 +19,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+//load area
 if ($type == "load") {
     $id = $_GET['id'];
     $table = $_GET['table'];
@@ -51,90 +61,108 @@ if ($type == "load") {
     }
 
     mysqli_close($conn);
+
+//looplink
+} elseif ($type == "loop") {
+    if (!array_key_exists("path", $_POST)) {
+        die("Path not set");
+    }
+    if (!$table || !$old || !$choice) {
+        die("Missing parameters: $table, $old, $choice");
+    }
+
+    $new = $_POST['path'];
+    if ($choice) {
+        mysqli_query($conn, "UPDATE $table SET link$choice='$new' WHERE id='$old' LIMIT 1");
+    }
+    echo "Loop Link";
+
+} elseif ($type == "update") {
+    if (!$table || !$old) {
+        die("Missing parameters");
+    }
+
+    $queryUpdate = "UPDATE `$table` SET 
+        area = '" . mysqli_real_escape_string($conn, $_POST["description"]) . "', 
+        choice1 = '" . mysqli_real_escape_string($conn, $_POST["option1"]) . "', 
+        choice2 = '" . mysqli_real_escape_string($conn, $_POST["option2"]) . "', 
+        link1 = '" . $_POST["pathLink1"] . "', 
+        link2 = '" . $_POST["pathLink2"] . "', ";
+    if (isset($_POST['option3'])) {
+        $queryUpdate .= "choice3 = '" . mysqli_real_escape_string($conn, $_POST["option3"]) . "', 
+            link3 = '" . $_POST["pathLink3"] . "', ";
+    }
+    if (isset($_POST['areaColor'])) {
+        $queryUpdate .= "color = '" . mysqli_real_escape_string($conn, $_POST["areaColor"]) . "', ";
+    }
+    $queryUpdate .= "author = '" . mysqli_real_escape_string($conn, $_POST["author"]) . "'
+        WHERE `id` = $old LIMIT 1";
+    
+    mysqli_query($conn, $queryUpdate);
+
+    $response = new stdClass();
+    $response->id = $old;
+    $response->description = htmlspecialchars(substr($_POST["description"], 0, 80)) . "...";
+    $response->error = mysqli_error($conn);
+    $response->message = "Updated area: $old";
+
+    echo json_encode($response);
+
+    // echo "Updating: ";
+    // echo $queryUpdate;
+
+//add new area
 } elseif ($type == "add") {
-    $table = $_POST['table'];
-    $old = $_POST['old'];
-    $choice = $_POST['choice'];
-    $next = 1;
-    if (isset($_POST['stay'])) {
-        $next = $old;
+    if (!$table || !$old) {
+        die("Missing parameters");
     }
 
-    //loop link
-    if (isset($_POST['submitLink']) && $_POST['path'] != "") {
-        $new = $_POST['path'];
-        if ($choice) {
-            mysqli_query($conn, "UPDATE $table SET link$choice='$new' WHERE id='$old' LIMIT 1");
-        }
+    //take data from form
+    $string = "'" . mysqli_real_escape_string($conn, $_POST["description"]) . "' ,";
+    $string .= "'" . mysqli_real_escape_string($conn, $_POST["option1"]) . "' ,";
+    $string .= "'" . $_POST['pathLink1'] . "' ,";
+    $string .= "'" . mysqli_real_escape_string($conn, $_POST["option2"]) . "' ,";
+    $string .= "'" . $_POST['pathLink2'] . "' ,";
+    if (isset($_POST['option3'])) {
+        $string .= "'" . mysqli_real_escape_string($conn, $_POST["option3"]) . "' ,";
+        $string .= "'" . $_POST['pathLink3'] . "' ,";
+    }
+    if (isset($_POST['areaColor'])) {
+        $string .= "'" . mysqli_real_escape_string($conn, $_POST["areaColor"]) . "' ,";
+    }
+    $string .= "'" . mysqli_real_escape_string($conn, $_POST["author"]) . "'";
+    
+    $queryInsert = "INSERT INTO $table (area, choice1, link1, choice2, link2, ";
+    if (isset($_POST['option3'])) {
+        $queryInsert .= "choice3, link3, ";
+    }
+    if (isset($_POST['areaColor'])) {
+        $queryInsert .= "color, ";
+    }
+    $queryInsert .= "author) VALUES ($string)";
 
-    // update area
-    } elseif (isset($_POST['submitUpdate']) && $_POST['description'] != "") {
+    mysqli_query($conn, $queryInsert);
+    $new = mysqli_insert_id($conn);
 
-        $queryUpdate = "UPDATE `$table` SET 
-            area = '" . mysqli_real_escape_string($conn, $_POST["description"]) . "', 
-            choice1 = '" . mysqli_real_escape_string($conn, $_POST["option1"]) . "', 
-            choice2 = '" . mysqli_real_escape_string($conn, $_POST["option2"]) . "', 
-            link1 = '" . $_POST["pathLink1"] . "', 
-            link2 = '" . $_POST["pathLink2"] . "', ";
-        if (isset($_POST['option3'])) {
-            $queryUpdate .= "choice3 = '" . mysqli_real_escape_string($conn, $_POST["option3"]) . "', 
-                link3 = '" . $_POST["pathLink3"] . "', ";
-        }
-        if (isset($_POST['areaColor'])) {
-            $queryUpdate .= "color = '" . mysqli_real_escape_string($conn, $_POST["areaColor"]) . "', ";
-        }
-        $queryUpdate .= "author = '" . mysqli_real_escape_string($conn, $_POST["author"]) . "'
-            WHERE `id` = $old LIMIT 1";
-        // echo $queryUpdate;
-        mysqli_query($conn, $queryUpdate);
+    // echo "Created new area: ";
+    // echo $new;
+    // $area = substr($path['area'], 0, 80) . "...";
+    // $thisId = $path['id'];
+    // echo "<option value='$thisId'>$thisId=" .  htmlspecialchars($area) . "</option>";
 
-    //new area data
-    } elseif (isset($_POST['submit']) && $_POST['description'] != ""){
+    $response = new stdClass();
+    $response->id = $new;
+    $response->description = htmlspecialchars(substr($_POST["description"], 0, 80)) . "...";
+    $response->error = mysqli_error($conn);
+    $response->message = "Added area: $new";
 
-        echo mysqli_insert_id($conn);
+    echo json_encode($response);
 
-        //take data from form
-        $string = "'" . mysqli_real_escape_string($conn, $_POST["description"]) . "' ,";
-        $string .= "'" . mysqli_real_escape_string($conn, $_POST["option1"]) . "' ,";
-        $string .= "'" . $_POST['pathLink1'] . "' ,";
-        $string .= "'" . mysqli_real_escape_string($conn, $_POST["option2"]) . "' ,";
-        $string .= "'" . $_POST['pathLink2'] . "' ,";
-        if (isset($_POST['option3'])) {
-            $string .= "'" . mysqli_real_escape_string($conn, $_POST["option3"]) . "' ,";
-            $string .= "'" . $_POST['pathLink3'] . "' ,";
-        }
-        if (isset($_POST['areaColor'])) {
-            $string .= "'" . mysqli_real_escape_string($conn, $_POST["areaColor"]) . "' ,";
-        }
-        $string .= "'" . mysqli_real_escape_string($conn, $_POST["author"]) . "'";
-        // echo $string;
-        
-        $queryInsert = "INSERT INTO $table (area, choice1, link1, choice2, link2, ";
-        if (isset($_POST['option3'])) {
-            $queryInsert .= "choice3, link3, ";
-        }
-        if (isset($_POST['areaColor'])) {
-            $queryInsert .= "color, ";
-        }
-        $queryInsert .= "author) VALUES ($string)";
-
-        // echo "<br>";
-        // echo $queryInsert;
-
-        mysqli_query($conn, $queryInsert);
-        $new = mysqli_insert_id($conn);
-
-        echo $new;
-
-        //enter into whichever choice you did
-        if ($choice) {
-            mysqli_query($conn, "UPDATE $table SET link$choice='$new' WHERE id='$old' LIMIT 1");
-        }
-
+    //enter into whichever choice you did
+    if ($choice) {
+        mysqli_query($conn, "UPDATE $table SET link$choice='$new' WHERE id='$old' LIMIT 1");
     }
 
-    header("Location: new.php?area=$next");
-    die;
 
 } elseif ($type == "myTables") {
     $table = $_GET['table'];
@@ -167,6 +195,9 @@ if ($type == "load") {
         echo "added table to your list";
         // echo $update;
     }
+} else {
+    echo "Error: ";
+    echo $type;
 }
 
 ?>

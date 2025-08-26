@@ -183,7 +183,7 @@ if (!$view) {
             </div>
             <h4 class="new-path">New Path Found!</h4>
             <button class='btn btn-outline-secondary float-end' id='backBtn'>Back</button>
-            <form method='post' action='ajax.php?type=add' id='addPathForm'>
+            <form method='post' id='addPathForm'>
                 <label for='description'>What happens?</label>
                 <textarea id='area' name='description' class='form-control areaInput'></textarea>
                 
@@ -225,7 +225,7 @@ if (!$view) {
                 <input type='hidden' name='old' value='' id='oldId'>
                 <input type='hidden' name='choice' value='' id='oldChoice'>
                 <input type='hidden' name='table' value='' id='oldTable'>
-                <input type='submit' name='submit' id='submit' class='btn btn-primary form-control mt-2 mb-2'>
+                <button type='button' name='add' id='submit' class='btn btn-primary form-control mt-2 mb-2 submit'>Submit</button>
 
                 <!-- Add link to prior area -->
                 <?php if($tableType == "Three" || $tableType == "Loop" || $tableType == "RPG") {
@@ -241,7 +241,7 @@ if (!$view) {
                         }
                     }
                     echo "</select>
-                        <input type='submit' name='submitLink' class='btn btn-dark form-control mt-2 loopLink' id='loopLinkArea' value='Loop Link' disabled>
+                        <button type='button' name='loopLink' class='btn btn-dark form-control mt-2 loopLink submit' id='loopLinkArea' disabled>Loop Link</button>
                         </form>";
                 } ?>
 
@@ -372,6 +372,76 @@ if (!$view) {
         }
     }
 
+    function addArea(submitType) {
+        let stay = $("#stay").prop("checked");
+        if (submitType == "loopLink") {
+            $.post("ajax.php?type=loop",
+                {
+                    id: $("#areaId").val(),
+                    old: $("#oldId").val(),
+                    choice: $("#oldChoice").val(),
+                    table: $("#oldTable").val(),
+                    path: $("#path").val(),
+                },
+                function(response) {
+                    // Handle the response from the server
+                    console.log(response);
+                    if (stay) {
+                        loadArea($("#oldId").val(), $("#oldTable").val());
+                    } else {
+                        loadArea(1, $("#oldTable").val());
+                    }
+                    $("#inputData").hide();
+                    $("#data").show();
+                    
+                }
+            )
+        } else {
+            $.post("ajax.php?type="+submitType,
+                {
+                    id: $("#areaId").val(),
+                    description: $("#area").val(),
+                    option1: $("#option1").val(),
+                    option2: $("#option2").val(),
+                    option3: $("#option3").val(),
+                    color: $("input[name='areaColor']").val(),
+                    old: $("#oldId").val(),
+                    choice: $("#oldChoice").val(),
+                    table: $("#oldTable").val(),
+                    pathLink1: $("#pathLink1").val(),
+                    pathLink2: $("#pathLink2").val(),
+                    pathLink3: $("#pathLink3").val(),
+                    author: $("#newPathAuthor").val(),
+                },
+                function(response) {
+                    // Handle the response from the server
+                    response = JSON.parse(response);
+                    console.log(response);
+                    if (stay) {
+                        loadArea($("#oldId").val(), $("#oldTable").val());
+                    } else {
+                        loadArea(1, $("#oldTable").val());
+                    }
+                    $("#inputData").hide();
+                    $("#data").show();
+                    $(".pathSelect").html("<option value='0' class='default'>Link: <span>0</span></option>")
+                    if (submitType == "add") {
+                        $("#path").append(`<option value='${response.id}'>${response.id}=${response.description}</option>`);
+                    } else {
+                        $(`#path option[value='${response.id}']`).html(`${response.id}=${response.description}`);
+                    }
+                    displayError(response.message, "primary");
+                }
+            
+            )}
+    }
+
+    $("#addPathForm button.submit").on("click", function() {
+        let submitType = $(this).attr("name");
+        console.log(submitType);
+        addArea(submitType);
+    })
+
     $(".restart").on("click", function() {
         id = 1;
         let table = $("#tableSelector").val();
@@ -440,8 +510,8 @@ if (!$view) {
         $("#oldId").val($("#currentArea").val());
         $("#oldTable").val(table);
         $("#inputData").show();
-        $("#submit").attr("name", "submitUpdate");
-        $("#submit").val("Update");
+        $("#submit").attr("name", "update");
+        $("#submit").text("Update");
         $(".new-path").html("Update path: " + $("#oldId").val());
         update = true;
 
@@ -478,6 +548,9 @@ if (!$view) {
         $("#oldTable").val(table);
         $("#newPathAuthor").val(username);
         $(".new-path").html("New Path Found!");
+
+        $("#submit").attr("name", "add");
+        $("#submit").text("Submit");
 
         $("#inputData").show();
         $("#data").hide();
@@ -535,15 +608,11 @@ if (!$view) {
         console.log(buttonNumber);
         
         if (html == "Loop Link") {
-            if ($("#pathLink" + buttonNumber + " option").length > 2) {
-                $("#pathLink" + buttonNumber).show();
-                clicked.html("Remove Link");
-            
-            } else {
-                $("#pathLink" + buttonNumber).show();
+            if ($("#pathLink" + buttonNumber + " option").length < 2) {
                 $("#pathLink" + buttonNumber).append($("#path").html());
-                clicked.html("Remove Link");
             }
+            $("#pathLink" + buttonNumber).show();
+            clicked.html("Remove Link");
         
         } else if (!update){
             $("#pathLink" + buttonNumber).hide();
@@ -551,8 +620,8 @@ if (!$view) {
             $(this).html("Loop Link");
         }
         if (update) {
-            $(this).html("Change Link");
-            $(this).addClass("disabled");
+            $(this).html("Loop Link");
+            // $(this).addClass("disabled");
         }
     })
 
