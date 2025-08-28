@@ -52,13 +52,18 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
 
         $extra = "";
         $type = $_POST['tableType'];
+        $choiceCount = $_POST['size'];
 
-        if ($type == "Three" || $type == "RPG") {
-            $extra = "choice3 varChar(255), link3 int NOT NULL,";
+        for ($i = 2; $i <= $choiceCount; $i++) {
+            $extra .= "choice$i varChar(255), link$i int NOT NULL,";
         }
 
+        // if ($type == "Three" || $type == "RPG") {
+        //     $extra = "choice3 varChar(255), link3 int NOT NULL,";
+        // }
+
         echo "<br>Creating new table, please wait...<br>";
-        $sql = "INSERT INTO `tables` (`id`, `name`, `creator`, `editor`, `viewer`, `description`, `type`) VALUES (NULL, '$newTable', '$user', '$public', '$public2', '$description', '$type');";
+        $sql = "INSERT INTO `tables` (`id`, `name`, `creator`, `editor`, `viewer`, `description`, `type`, `choices`) VALUES (NULL, '$newTable', '$user', '$public', '$public2', '$description', '$type', '$choiceCount');";
         echo $sql;
 
         mysqli_query($conn, $sql);
@@ -70,8 +75,6 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
                     color varChar(7),
                     choice1 varChar(255),
                     link1 int NOT NULL,
-                    choice2 varChar(255),
-                    link2 int NOT NULL,
                     $extra
                     author varChar(255),
                     PRIMARY KEY (id)
@@ -150,9 +153,15 @@ if (array_key_exists('newSubmit', $_POST) && array_key_exists('newTable', $_POST
             <label for="tableType">Adventure Type: </label>
             <select class="btn btn-primary" name="tableType">
                 <option>Classic</option>
-                <option>Three</option>
                 <option>Loop</option>
                 <option>RPG</option>
+            </select>
+            <select class="btn btn-secondary" name="size">
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
             </select>
             <input type="submit" name="newSubmit" class="btn btn-primary mb-2">
         </form>

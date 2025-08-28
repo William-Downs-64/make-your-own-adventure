@@ -7,7 +7,7 @@ $("body").append(`<div class='rpg'>
     <div id='stat-SCORE'><h2>SCORE: <span id='SCORE-counter'></span></h2></div></div>`);
 
 function checkScore(text, container) {
-    let matches = text.match(/[A-Z]+[\+\-=][0-9\.]+/g);
+    let matches = text.match(/[A-Z]+[\+\-=][0-9]+(\.[0-9]+)?/g);
     let wordMatches = text.match(/[A-Z]+=[A-Za-z]+/g);
     let checkpoint = text.includes("CHECKPOINT");
 
@@ -38,24 +38,9 @@ function checkScore(text, container) {
 
 function rpgFormat(text, container) {
     let replacing = text.match(/\?[A-Z]+/g);
-    let rules = text.match(/\(?[A-Z]+([<>]=?|==)[0-9\.A-Za-z]+\)?/g);
-    let changes = text.match(/\(?[A-Z]+[\+\-=][0-9\.A-Za-z]+\)?/g);
+    let rules = text.match(/\(?[A-Z]+([<>!]=?|==)[0-9A-Za-z]+(\.[0-9]+)?\)?/g);
+    let changes = text.match(/\(?[A-Z]+[\+\-=][0-9\.A-Za-z]+(\.[0-9]+)?\)?/g);
     
-    // let inputField = text.match(/INPUT:[A-Z]+/);
-
-    // if (inputField) {
-    //     let inputName = inputField[0].split(":")[1];
-
-    //     let html = `
-    //     <div class="input-group">
-    //         <span class="input-group-text">${inputName}:</span>
-    //         <input type='text' id='${inputName}' class='rpg-input form-control' placeholder='Enter ${inputName}'>
-    //         <div class="input-group-append">
-    //             <button class="btn btn-secondary" type="button" data-choice="1" data-link="">Submit</button>
-    //         </div>
-    //     </div>`;
-    //     container.html(html);
-    // }
     if (replacing) {
         for (i=0; i<replacing.length; i++) {
             that = replacing[i].replace("?", "");
@@ -124,9 +109,9 @@ function wordChange(type, word) {
 }
 
 function checkAbility(text, button) {
-    let matches = text.match(/[A-Z]+[<>=]=?[0-9\.A-Za-z]+/g);
+    let matches = text.match(/[A-Z]+[<>=!]=?([\-0-9\.]|[A-Za-z])+/g);
     let returnValue = text.includes("RETURN");
-    console.log(matches);
+    // console.log(matches);
     
 
     rpgFormat(text, button.find(".choice-text"));
@@ -142,7 +127,7 @@ function checkAbility(text, button) {
     for (i=0; i<matches.length; i++) {
         that = matches[i];
 
-        let operator = that.match(/[<>=]=?/);
+        let operator = that.match(/[<>=!]=?/);
         let split = that.split(operator);
 
         if (statCheck(split[0], split[1],operator)) {
@@ -179,9 +164,13 @@ function statCheck(str, num, calc) {
             break;
         case "==":
             console.log("check if equal");
-            console.log(statValue == num || statValue == parseFloat(num))
-            console.log("value: " + statValue, "number: " + num)
             if (statValue == num || statValue == parseFloat(num)) {
+                return false;
+            }
+            break;
+        case "!=":
+            console.log("check if not equal");
+            if (statValue != num && statValue != parseFloat(num)) {
                 return false;
             }
             break;
@@ -235,12 +224,15 @@ $("#toggleRPG").html(`
 
 //add button rule
 $("#addRule").html(`
+    <label for='rpgHidden'>Hidden change?</label>
+    <input type='checkbox' id='rpgHidden'>
     <div class='input-group'>
         <input type='text' id='rule-name' class='form-control' placeholder='variable'>
         <select id='rule-operator' class='form-select'>
             <option value='=='>Equal</option>
             <option value='>'>Greater Than</option>
             <option value='<'>Less Than</option>
+            <option value='!='>Not Equal</option>
             <option value='<='>Less Than or Equal To</option>
             <option value='>='>Greater Than or Equal To</option>
         </select>
@@ -300,7 +292,10 @@ $("body").on("click", ".rpg-button", function() {
         return alert("Rule already exists on this option");
     }
 
-    let addRule = `(${ruleName}${ruleOperator}${ruleValue})`;
+    let addRule = `${ruleName}${ruleOperator}${ruleValue}`;
+    if ($("#rpgHidden").is(":checked")) {
+        addRule = `[${addRule}]`;
+    }
 
     if (ruleOperator == "?") {
         addRule = `?${ruleName}`;

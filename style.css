@@ -3,13 +3,13 @@
     --debug: none;
     --star-size: 40px;
 
-    --btn1-color: rgb(112, 112, 201);
-    --btn2-color: rgb(87, 145, 87);
+    --btn1-color: rgb(87, 145, 87);
+    --btn2-color: rgb(112, 112, 201);
     --btn3-color: rgb(213, 213, 107);
 
-    --btn1-hover: rgb(91, 91, 199);
-    --btn2-hover: rgb(96, 167, 96);
-    --btn3-hover: rgb(192, 218, 90);
+    --btn1-hover: rgb(96, 167, 96);
+    --btn2-hover: rgb(91, 91, 199);
+    --btn3-hover: rgb(237, 235, 75);
 
     --btnWin-color: rgb(219, 0, 219);
     --btnLose-color: rgb(189, 30, 30);
@@ -166,17 +166,19 @@ body.theme2 {
 /* Button colors */
 #choiceButtons .btn{
     color: var(--btnText-color);
+    min-width: 33%;
+    margin-bottom: 5px;
 }
 #choiceButtons .btn.disabled {
     background-color: var(--btnDisabled);
     color: var(--btnDisabled-text);
 }
-.btn-path1 {background: var(--btn1-color)}
-.btn-path1:hover {background: var(--btn1-hover)}
-.btn-path2 {background: var(--btn2-color);}
-.btn-path2:hover {background: var(--btn2-hover);}
-.btn-path3 {background: var(--btn3-color);}
-.btn-path3:hover {background: var(--btn3-hover);}
+.btn-path1, .btn-path4 {background: var(--btn1-color)}
+.btn-path1:hover, .btn-path4:hover {background: var(--btn1-hover)}
+.btn-path2, .btn-path5 {background: var(--btn2-color);}
+.btn-path2:hover, .btn-path5:hover {background: var(--btn2-hover);}
+.btn-path3, .btn-path6 {background: var(--btn3-color);}
+.btn-path3:hover, .btn-path6:hover {background: var(--btn3-hover);}
 .btn-pathWin {background: var(--btnWin-color);}
 .btn-pathWin:hover {background: var(--btnWin-hover);}
 .btn-pathLose {background: var(--btnLose-color);}
