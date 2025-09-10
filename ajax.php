@@ -65,6 +65,7 @@ if ($type == "load") {
             $myObj->link1 = 'win';
             $myObj->button1 = "<button class='btn btn-pathWin col-md' data-choice='1' data-link='win'>Congratulations!</button>";
         } elseif (!$row['choice1']) {
+            $myObj->choice1 = 'Restart';
             $myObj->button1 = "<button class='btn btn-pathLose col-md restart' data-choice='1' data-link='1'>Restart</button>";
         }
         // $myObj->choice2 = $row['choice2'];

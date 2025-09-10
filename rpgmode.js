@@ -8,7 +8,7 @@ $("body").append(`<div class='rpg'>
 
 function checkScore(text, container) {
     let matches = text.match(/[A-Z]+[\+\-=][0-9]+(\.[0-9]+)?/g);
-    let wordMatches = text.match(/[A-Z]+=[A-Za-z]+/g);
+    let wordMatches = text.match(/[A-Z]+=[A-Za-z_]+/g);
     let checkpoint = text.includes("CHECKPOINT");
 
     if (checkpoint) {
@@ -38,34 +38,37 @@ function checkScore(text, container) {
 
 function rpgFormat(text, container) {
     let replacing = text.match(/\?[A-Z]+/g);
-    let rules = text.match(/\(?[A-Z]+([<>!]=?|==)[0-9A-Za-z]+(\.[0-9]+)?\)?/g);
-    let changes = text.match(/\(?[A-Z]+[\+\-=][0-9\.A-Za-z]+(\.[0-9]+)?\)?/g);
+    let rules = text.match(/\(?[A-Z]+([<>!]=?|==)[0-9A-Za-z_]+(\.[0-9]+)?\)?/g);
+    let changes = text.match(/\(?[A-Z]+[\+\-=][0-9\.A-Za-z_]+(\.[0-9]+)?\)?/g);
     
     if (replacing) {
         for (i=0; i<replacing.length; i++) {
             that = replacing[i].replace("?", "");
             let replaceText = stats[that];
+            // replaceText = replaceText.replace(/_/g, " ");
             if (replaceText == undefined) {
                 replaceText = "--";
             }
             text = text.replace("?" + that, `<span class='rpg-replace'>${replaceText}</span>`);
             console.log("Replacing " + that + " with " + replaceText);
             // console.log(text);
-            container.html(text);
+            // container.html(text);
         }
     }
     if (rules) {
         for (i=0; i<rules.length; i++) {
             that = rules[i];
+            // that = that.replace(">=", "&ge;").replace("<=", "&le;");
+            // console.log(that);
             text = text.replace(that, `<span class='rpg-rule'>${that}</span>`);
-            container.html(text);
         }
+        // container.html(text.replace(">=", "&ge;").replace("<=", "&le;"));
     }
     if (changes) {
         for (i=0; i<changes.length; i++) {
             that = changes[i];
             text = text.replace(that, `<span class='rpg-change'>${that}</span>`);
-            container.html(text);
+            // container.html(text);
         }
     }
 
@@ -74,9 +77,11 @@ function rpgFormat(text, container) {
         for (i=0; i<hidden.length; i++) {
             that = hidden[i];
             text = text.replace(that, `<span class='debug'>${that}</span>`);
-            container.html(text);
         }
     }
+    text = text.replace("!=", "&ne;").replace("==", "=").replace(">=", "&ge;").replace("<=", "&le;");
+    // text = "buffalo";
+    container.html(text);
 }
 
 function statChange(str, num, calc) {
@@ -109,7 +114,7 @@ function wordChange(type, word) {
 }
 
 function checkAbility(text, button) {
-    let matches = text.match(/[A-Z]+[<>=!]=?([\-0-9\.]|[A-Za-z])+/g);
+    let matches = text.match(/[A-Z]+[<>=!]=?([\-0-9\.]|[A-Za-z_])+/g);
     let returnValue = text.includes("RETURN");
     // console.log(matches);
     
@@ -130,7 +135,7 @@ function checkAbility(text, button) {
         let operator = that.match(/[<>=!]=?/);
         let split = that.split(operator);
 
-        if (statCheck(split[0], split[1],operator)) {
+        if (statCheck(split[0], split[1], operator)) {
             console.log("Failed check: " + that, stats[split[0]]);
             return button.addClass("disabled");
         }
@@ -195,10 +200,11 @@ function statCheck(str, num, calc) {
 }
 
 function renderStats(stat) {
+    let value = stats[stat];
     if ($("#stat-" + stat).length == 0) {
-        $(".rpg").append(`<div id='stat-${stat}'><h2>${stat}: <span id='${stat}-counter'>${stats[stat]}</span></h2></div>`)
+        $(".rpg").append(`<div id='stat-${stat}'><h2>${stat}: <span id='${stat}-counter'>${value}</span></h2></div>`)
     } else {
-        $(`#${stat}-counter`).html(stats[stat]);
+        $(`#${stat}-counter`).html(value);
     }
 }
 function renderWord(variable) {

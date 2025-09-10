@@ -324,8 +324,9 @@ if ($username != "anonymous"){
 
         if (table.rpg) {
             checkScore(object.area, $("#areaDescription"));
-            $("#choiceButtons button").each(function() {
-                checkAbility($(this).find(".choice-text").text(), $(this));
+            $("#choiceButtons button").each(function(index) {
+                // checkAbility($(this).find(".choice-text").text(), $(this));
+                checkAbility(object[`choice${$(this).data("choice")}`], $(this));
             })
         }
 
@@ -447,15 +448,17 @@ if ($username != "anonymous"){
         $("#data").show();
     })
 
-    $(document).on("click", ".currentChoice #choiceButtons button", function() {
+    $(document).on("click", "#choiceButtons button", function() {
         let value = $(this).data("link");
         // let table = $("#tableSelector").val();
         let choice = $(this).data("choice");
         let text = $(this).html();
         console.log(text);
 
+        // let data = loadedAreas["area" + id];
+
         if (table.rpg) {
-            checkScore($(this).text(), $(this));
+            checkScore(data[`button${choice}`], $(this));
         }
 
         $("#" + id).css("background-color", "lightblue");
