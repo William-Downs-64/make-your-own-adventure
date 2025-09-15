@@ -7,8 +7,8 @@ $("body").append(`<div class='rpg'>
     <div id='stat-SCORE'><h2>SCORE: <span id='SCORE-counter'></span></h2></div></div>`);
 
 function checkScore(text, container) {
-    let matches = text.match(/[A-Z]+[\+\-=][0-9]+(\.[0-9]+)?/g);
-    let wordMatches = text.match(/[A-Z]+=[A-Za-z_]+/g);
+    let matches = text.match(/f?[A-Z]+[\+\-=][0-9]+(\.[0-9]+)?/g);
+    let wordMatches = text.match(/f?[A-Z]+=[A-Za-z_]+/g);
     let checkpoint = text.includes("CHECKPOINT");
 
     if (checkpoint) {
@@ -20,8 +20,10 @@ function checkScore(text, container) {
     if (matches) {
         for (i=0; i<matches.length; i++) {
             that = matches[i];
-            statChange(that.match(/[A-Z]+/),that.match(/[0-9\.]+/),that.match(/[\+\-=]/))
+            statChange(that.match(/f?[A-Z]+/),that.match(/[0-9\.]+/),that.match(/[\+\-=]/))
             displayError(that, "info")
+
+            // statChange(that.match(/f?[A-Z]+/),that.match(/[0-9\.]+/),that.match(/[\+\-=]/))
         }
     }
     // Handle word matches
@@ -38,8 +40,8 @@ function checkScore(text, container) {
 
 function rpgFormat(text, container) {
     let replacing = text.match(/\?[A-Z]+/g);
-    let rules = text.match(/\(?[A-Z]+([<>!]=?|==)[0-9A-Za-z_]+(\.[0-9]+)?\)?/g);
-    let changes = text.match(/\(?[A-Z]+[\+\-=][0-9\.A-Za-z_]+(\.[0-9]+)?\)?/g);
+    let rules = text.match(/\(?f?[A-Z]+([<>!]=?|==)[0-9A-Za-z_]+(\.[0-9]+)?\)?/g);
+    let changes = text.match(/\(?f?[A-Z]+[\+\-=][0-9\.A-Za-z_]+(\.[0-9]+)?\)?/g);
     
     if (replacing) {
         for (i=0; i<replacing.length; i++) {
@@ -85,6 +87,7 @@ function rpgFormat(text, container) {
 }
 
 function statChange(str, num, calc) {
+    console.log("stat change");
     if (!stats[str] || stats[str] == undefined) {
         stats[str] = 0;
     }
@@ -114,7 +117,7 @@ function wordChange(type, word) {
 }
 
 function checkAbility(text, button) {
-    let matches = text.match(/[A-Z]+[<>=!]=?([\-0-9\.]|[A-Za-z_])+/g);
+    let matches = text.match(/[A-Zf]+[<>=!]=?([\-0-9\.]|[A-Za-z_])+/g);
     let returnValue = text.includes("RETURN");
     // console.log(matches);
     
@@ -201,17 +204,14 @@ function statCheck(str, num, calc) {
 
 function renderStats(stat) {
     let value = stats[stat];
+    console.log(String(stat));
+    if (String(stat).startsWith("f")) {
+        return; // do not display flag stats
+    }
     if ($("#stat-" + stat).length == 0) {
         $(".rpg").append(`<div id='stat-${stat}'><h2>${stat}: <span id='${stat}-counter'>${value}</span></h2></div>`)
     } else {
         $(`#${stat}-counter`).html(value);
-    }
-}
-function renderWord(variable) {
-    if ($("#stat-" + variable).length == 0) {
-        $(".rpg").append(`<div id='stat-${variable}'><h2>${variable}: <span id='${variable}-counter'>${stats[variable]}</span></h2></div>`)
-    } else {
-        $(`#${variable}-counter`).html(stats[variable]);
     }
 }
 
@@ -230,8 +230,6 @@ $("#toggleRPG").html(`
 
 //add button rule
 $("#addRule").html(`
-    <label for='rpgHidden'>Hidden change?</label>
-    <input type='checkbox' id='rpgHidden'>
     <div class='input-group'>
         <input type='text' id='rule-name' class='form-control' placeholder='variable'>
         <select id='rule-operator' class='form-select'>
@@ -252,6 +250,10 @@ $("#addRule").html(`
     </div>
 `)
 $("#addChange").html(`
+    <input type='checkbox' id='rpgHidden'>
+    <label for='rpgHidden'>Hidden change?</label>
+    <input type='checkbox' id='rpgFlag'>
+    <label for='rpgFlag'>Hidden Stat?</label>
     <div class='input-group'>
         <input type='text' id='change-name' class='form-control' placeholder='variable'>
         <select id='change-operator' class='form-select'>
@@ -289,6 +291,9 @@ $("body").on("click", ".rpg-button", function() {
         if (ruleOperator != "?") {
             return alert("Please fill in all fields");
         }
+    }
+    if ($("#rpgFlag").is(":checked")) {
+        ruleName = "f" + ruleName;
     }
 
     // Add rule to selected option

@@ -12,87 +12,58 @@
           integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
           crossorigin="anonymous"></script>
 
-  <style type="text/css">
+    <style type="text/css">
 
-    #review {
-        position: relative;
-        width: 200px;
-        height: 40px;
-    }
-    #reviewEdit {
-        position: relative;
-        width: 200px;
-        height: 40px;
-    }
+        #output {
+            background-color: lightblue;
+            padding: 10px;
+        }
+    
+    </style>
+    <link rel="stylesheet" href="style.css">
 
-    .star-holder {
-        display: inline-block;
-        width: 100%;
-        height: 40px;
-        background-image: url(images/star-empty.svg);
-        background-size: 40px;
-        position: absolute;
-        top: 0;
-        left: 0;
-    }
-    .star-holder.fill {
-        background-image: url(images/star-full.svg);
-        width: 50%;
-    }
-  </style>
+    <input id="testing">
+    <button id="testingBtn">Enter</button>
+
+    <div id="output"></div>
 
 </head>
 <body>
 
-    <div class="container">
-        <div id="review">
-            <div class="star-holder"></div>
-            <div class="star-holder full"></div>
-        </div>
-    </div>
-    <div class="container">
-        <div id="reviewEdit">
-            <div class="star-holder"></div>
-            <div class="star-holder fill"></div>
-        </div>
-        <input name="rating" id="rating" value="0">
-    </div>
+    
+<script src="rpgmode.js"></script>
+<script type="text/javascript">
 
-<script>
+    let text = "";
 
-    $(document).ready(function() {
-        let stars = 3;
-        let starWidth = (stars / 5) * 100;
-        $("#review .star-holder.fill").css("width", starWidth + "%");
+    $("#testingBtn").on("click", function() {
+        text = $("#testing").val();
+        checkScore(text, $("#output"));
+    })
+    $(document).on("keydown", function(event) {
+        // console.log(event.key);
+        if (event.key == "Enter") {
+            text = $("#testing").val();
+            checkScore(text, $("#output"));
+        }
+    })
 
-        $("#reviewEdit .star-holder.fill").css("width", "0%");
-        $("#reviewEdit").on("mousemove", function(e) {
-            let offset = $(this).offset();
-            let relativeX = e.pageX - offset.left;
-            let totalWidth = $(this).width();
-            let percent = relativeX / totalWidth;
-            let fillWidth = Math.min(Math.max(percent, 0), 1) * 100;
-            fillWidth = Math.round(fillWidth / 10 + .5) * 10;
-            $("#reviewEdit .star-holder.fill").css("width", fillWidth + "%");
-        });
-        $("#reviewEdit").on("mouseleave", function() {
-            $("#reviewEdit .star-holder.fill").css("width", $("#rating").val() / 5 * 100 + "%");
-        });
-        $("#reviewEdit").on("click", function(e) {
-            let offset = $(this).offset();
-            let relativeX = e.pageX - offset.left;
-            let totalWidth = $(this).width();
-            let percent = relativeX / totalWidth;
-            stars = Math.min(Math.max(percent, 0), 1) * 10;
-            stars = Math.round(stars + 0.5) * 0.5;
-            let fillWidth = (stars / 5) * 100;
-            $("#reviewEdit .star-holder.fill").css("width", fillWidth + "%");
-            console.log("Selected stars: " + stars);
-            $("#rating").val(stars);
-        });
-    });
+    function displayError(message, type) {
+        if (!message || message == "" || message == "undefined") {
+            return;
+        }
 
+        let buttonHtml = "";
+        if (type != "primary" || true) {
+            buttonHtml = '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+        }
 
+        let thisDiv = $(`<div class="alert alert-${type} error">${message}${buttonHtml}</div>`);
+        $("#errorHolder").append(thisDiv);
+        setTimeout(() => {
+            thisDiv.remove();
+        }, 3000);
+    }
 
 </script>
 

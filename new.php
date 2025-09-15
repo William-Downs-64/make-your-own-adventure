@@ -363,7 +363,8 @@ if ($username != "anonymous"){
                     if (stay) {
                         loadArea(old, $("#oldTable").val());
                     } else {
-                        loadArea(1, $("#oldTable").val());
+                        // loadArea(1, $("#oldTable").val());
+                        $(".restart").trigger("click");
                     }
                     $("#inputData").hide();
                     $("#data").show();
