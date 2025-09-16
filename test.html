@@ -18,12 +18,24 @@
             background-color: lightblue;
             padding: 10px;
         }
+        #output.disabled {
+            background-color: red;
+        }
+        #option1 {
+            margin: 10px;
+            max-width: 1000px;
+        }
     
     </style>
     <link rel="stylesheet" href="style.css">
 
-    <input id="testing">
+    <div id="errorHolder"></div>
+
+    <textarea id="option1" class="form-control areaInput"></textarea>
+    <div id="addRule"></div>
+    <div id="addChange"></div>
     <button id="testingBtn">Enter</button>
+    <button id="testAbility">Check</button>
 
     <div id="output"></div>
 
@@ -34,21 +46,28 @@
 <script src="rpgmode.js"></script>
 <script type="text/javascript">
 
+    let debug = false;
     let text = "";
 
     $("#testingBtn").on("click", function() {
-        text = $("#testing").val();
+        text = $("#option1").val();
         checkScore(text, $("#output"));
     })
     $(document).on("keydown", function(event) {
         // console.log(event.key);
         if (event.key == "Enter") {
-            text = $("#testing").val();
+            event.preventDefault();
+            text = $("#option1").val();
             checkScore(text, $("#output"));
         }
     })
+    $("#testAbility").on("click", function() {
+        text = $("#option1").val();
+        checkAbility(text, $("#output"));
+    })
 
     function displayError(message, type) {
+        console.log("is this working?");
         if (!message || message == "" || message == "undefined") {
             return;
         }
@@ -64,6 +83,7 @@
             thisDiv.remove();
         }, 3000);
     }
+
 
 </script>
 

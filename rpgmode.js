@@ -2,13 +2,14 @@ let stats = [];
 stats["SCORE"] = 0;
 stats["CHECKPOINT"] = 1;
 // let variables = [];
+let symbols = new RegExp(/[\+\-=\/\*]/)
 
 $("body").append(`<div class='rpg'>
     <div id='stat-SCORE'><h2>SCORE: <span id='SCORE-counter'></span></h2></div></div>`);
 
 function checkScore(text, container) {
-    let matches = text.match(/f?[A-Z]+[\+\-=][0-9]+(\.[0-9]+)?/g);
-    let wordMatches = text.match(/f?[A-Z]+=[A-Za-z_]+/g);
+    let matches = text.match(/f?[A-Z]+([\+\-=\/\*][0-9\w]+(\.[0-9]+)?)+/g);
+    // let wordMatches = text.match(/f?[A-Z]+=[A-Za-z_]+/g);
     let checkpoint = text.includes("CHECKPOINT");
 
     if (checkpoint) {
@@ -19,18 +20,24 @@ function checkScore(text, container) {
 
     if (matches) {
         for (i=0; i<matches.length; i++) {
+            console.log("matches:" , matches)
             that = matches[i];
-            statChange(that.match(/f?[A-Z]+/),that.match(/[0-9\.]+/),that.match(/[\+\-=]/))
+            let calc = that.match(/[\+\-=\/\*]/g)
+            let value = that.match(/(?<=[\+\-=\/\*])[\w]+(\.[0-9]+)?/)[0];
+            console.log("Before String: " + value);
+            value = String(value);
+            console.log(value);
+
+            statChange(that.match(/f?[A-Z]+/),value,calc[0])
             displayError(that, "info")
 
-            // statChange(that.match(/f?[A-Z]+/),that.match(/[0-9\.]+/),that.match(/[\+\-=]/))
-        }
-    }
-    // Handle word matches
-    if (wordMatches) {
-        for (i=0; i<wordMatches.length; i++) {
-            that = wordMatches[i].split("=");
-            wordChange(that[0],that[1])
+            console.log("calc: " + calc)
+            if (calc.length > 1) {
+                matches[i] = that.replace(/[\+\-=\/\*][\w\.]+/, "");
+                console.log(matches[i]);
+                calc.splice(0,1);
+                i--;
+            }
         }
     }
 
@@ -41,8 +48,50 @@ function checkScore(text, container) {
 function rpgFormat(text, container) {
     let replacing = text.match(/\?[A-Z]+/g);
     let rules = text.match(/\(?f?[A-Z]+([<>!]=?|==)[0-9A-Za-z_]+(\.[0-9]+)?\)?/g);
-    let changes = text.match(/\(?f?[A-Z]+[\+\-=][0-9\.A-Za-z_]+(\.[0-9]+)?\)?/g);
+    let changes = text.match(/f?[A-Z]+([\+\-=\/\*][0-9\w]+(\.[0-9]+)?)+/g);
     
+    let hidden = text.match(/([\w\.=<>!]*)\[.*?\]/g);
+    if (hidden) {
+        for (i=0; i<hidden.length; i++) {
+            // that = hidden[i].replace("<", "&lt;").replace(">", "&gt;");
+            that = hidden[i];
+            console.log("hiding: " + that);
+            let hideRule = that.match(/^(.*)(?=\[)/)[0];
+            let hideText = String(that.match(/\[.*\]/));
+            // console.log(hideRule);
+
+            if (hideRule) {
+                console.log(hideRule);
+                let operator = hideRule.match(/[<>=!]=?/);
+                let split = hideRule.split(operator);
+                console.log("split: " + split)
+
+                if (statCheck(split[0], split[1], operator) || split.length < 2) {
+                    //check failed
+                    console.log("Failed check: " + hideRule, stats[split[0]]);
+                    // hideRule = `<span class="rpg-fail">${hideRule}</span>`;
+                    // hideText = `<span class='debug'>${hideText}</span>`
+                    hideRule = "";
+                    hideText = "";
+                    // return button.addClass("disabled");
+                } else {
+                    //check succeeded
+                    console.log("success! so show text: ", String(hideText).slice(1,-1));
+                    hideRule = "";
+                    hideText = `<span class='rpg-succeed'>${hideText.slice(1,-1)}</span>`;
+                }
+
+            } else {
+                hideText = `<span class='debug'>${hideText}</span>`
+            }
+
+            console.log("Rule: ", hideRule, "Text: ", hideText)
+
+            text = text.replace(that, hideRule + hideText);
+        }
+    }
+
+
     if (replacing) {
         for (i=0; i<replacing.length; i++) {
             that = replacing[i].replace("?", "");
@@ -74,36 +123,47 @@ function rpgFormat(text, container) {
         }
     }
 
-    let hidden = text.match(/\[.*\]/);
-    if (hidden) {
-        for (i=0; i<hidden.length; i++) {
-            that = hidden[i];
-            text = text.replace(that, `<span class='debug'>${that}</span>`);
-        }
-    }
+    
     text = text.replace("!=", "&ne;").replace("==", "=").replace(">=", "&ge;").replace("<=", "&le;");
     // text = "buffalo";
     container.html(text);
 }
 
 function statChange(str, num, calc) {
-    console.log("stat change");
+    console.log("stat change: " + str + calc + num);
     if (!stats[str] || stats[str] == undefined) {
         stats[str] = 0;
     }
+    console.log("Current Value:" + stats[str]);
+    if (stats[num]) {
+        num = stats[num];
+    }
+
+    if (!(/\d/).test(num) && calc != "=") {
+        console.log("error");
+        displayError("Error: can only do math with numbers", "danger");
+        return;
+    } 
 
     switch (String(calc)) {
         case "=":
             stats[str] = num;
             break;
         case "+":
-            stats[str] -= -num;
+            stats[str] -= -parseFloat(num);
             break;
         case "-":
-            stats[str] -= num;
+            stats[str] -= parseFloat(num);
+            break;
+        case "*":
+            stats[str] = stats[str] * parseFloat(num);
+            break;
+        case "/":
+            stats[str] = stats[str] / parseFloat(num);
             break;
 
     }
+    console.log("New Value: " + stats[str]);
     renderStats(str);
 }
 
@@ -143,7 +203,7 @@ function checkAbility(text, button) {
             return button.addClass("disabled");
         }
     }
-    // return button.removeClass("disabled");
+    return button.removeClass("disabled");
 }
 
 function statCheck(str, num, calc) {
@@ -204,14 +264,21 @@ function statCheck(str, num, calc) {
 
 function renderStats(stat) {
     let value = stats[stat];
-    console.log(String(stat));
+    console.log("Rendering: " + String(stat), value);
     if (String(stat).startsWith("f")) {
         return; // do not display flag stats
     }
     if ($("#stat-" + stat).length == 0) {
-        $(".rpg").append(`<div id='stat-${stat}'><h2>${stat}: <span id='${stat}-counter'>${value}</span></h2></div>`)
+        $(".rpg").append(`<div id='stat-${stat}' data-stat='${stat}'><h2>${stat}: <span id='${stat}-counter'>${value}</span></h2></div>`)
     } else {
         $(`#${stat}-counter`).html(value);
+    }
+
+    if (value == 0 || value == "" || value == undefined || !value) {
+        $(`#stat-${stat}`).hide();
+        console.log("hiding stat");
+    } else {
+        $(`#stat-${stat}`).show();
     }
 }
 
@@ -221,7 +288,7 @@ $("body").on("click", ".restart", function() {
     stats["SCORE"] = 0;
     console.log(stats);
     $(".rpg").html(`
-        <div id='stat-SCORE'><h2>SCORE: <span id='SCORE-counter'></span></h2></div>`);
+        <div id='stat-SCORE' data-stat='SCORE'><h2>SCORE: <span id='SCORE-counter'></span></h2></div>`);
 });
 
 $("#toggleRPG").html(`
@@ -277,6 +344,11 @@ $(".areaInput").on("click", function() {
     thisId = $(this).attr("id");
     $("#rule-location").val(thisId);
     $("#change-location").val(thisId);
+})
+$("body").on("click", ".rpg div", function() {
+    let name = $(this).data("stat");
+    $("#change-name").val(name);
+    $("#rule-name").val(name);
 })
 
 $("body").on("click", ".rpg-button", function() {

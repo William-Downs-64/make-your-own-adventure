@@ -28,6 +28,7 @@
     --rpg-rule-color: rgb(43, 4, 56);
     --rpg-rule-fail: rgb(137, 0, 0);
     --rpg-change-color: rgb(0, 0, 117);
+    --rpg-success-color: rgb(121, 118, 45);
 }
 
 body {
@@ -244,6 +245,14 @@ body.theme2 {
 .rpg-change {
     color: var(--rpg-change-color);
     font-weight: bold;
+}
+
+.rpg-succeed {
+    color: var(--rpg-success-color);
+}
+
+.rpg-fail {
+    color: var(--rpg-rule-fail) !important;
 }
 
 
