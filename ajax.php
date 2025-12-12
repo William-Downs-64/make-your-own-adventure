@@ -54,7 +54,7 @@ if ($type == "load") {
             if (isset($row["choice$i"]) && $row["choice$i"] != "") {
                 $link = $row["link$i"];
                 $choice = $row["choice$i"];
-                $myObj->{"button$i"} = "<button class='btn btn-path$i col-md' data-choice='$i' data-link='$link'><span class='choice-text'>$choice</span><span class='debug'>($link)</span></button>";
+                $myObj->{"button$i"} = "<button class='btn btn-path$i col-md' data-choice='$i' data-link='$link'><span class='choice-text'>$choice</span> <span class='debug'>($link)</span></button>";
                 $myObj->{"choice$i"} = $choice;
                 $myObj->{"link$i"} = $link;
             }

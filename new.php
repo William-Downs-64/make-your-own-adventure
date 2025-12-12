@@ -23,6 +23,15 @@ if (array_key_exists('user', $_SESSION)) {
     $username = $_SESSION['user'];
     echo "Welcome: $username";
     echo '<form method="post" id="logout" class="float-end">
+                <select id="themeSelect" class="btn btn-secondary">
+                    <option>Normal</option>
+                    <option>1</option>
+                    <option>grayscale</option>
+                    <option>Dark</option>
+                    <option>Gradient</option>
+                    <option>Blues</option>
+                </select>
+
                 <a href="browse.php" class="btn btn-warning">Browse Tables</a>
                 <input type="submit" name="logOut" value="logout" class="btn btn-outline-primary">
             </form>';
@@ -46,6 +55,7 @@ $view = false;
 $edit = false;
 $admin = false;
 $tableType = "Classic";
+$btnMax = 2;
 if ($username != "anonymous"){
     $result = mysqli_query($conn, "SELECT * FROM `tables` WHERE `name` = '" . $_SESSION['scenario'] . "'");
     if ($row = mysqli_fetch_array($result)) {
@@ -100,6 +110,8 @@ if ($username != "anonymous"){
 </head>
 <body>
 
+    <div class="tint-overlay"></div>
+
     <!-- Table selection -->
     <form method="post">
         <select name="scenario" id="tableSelector" class="btn btn-dark">
@@ -151,7 +163,7 @@ if ($username != "anonymous"){
     </div>
 
     <!-- Main Area -->
-    <div class="currentChoice container p-3 mt-4 border main-box">
+    <div class="currentChoice container p-3 mt-4 main-box">
         <!-- Loaded Area -->
         <div id="data" class="">
             <input type='number' id='currentArea' class='areaId debug form-control-plaintext col-sm-1' readonly value=''>
@@ -231,6 +243,10 @@ if ($username != "anonymous"){
         </div>
     </div>
 
+<?php if ($tableType == "RPG") {
+    echo "<script type='text/javascript' src='rpgmode.js'></script>";
+} ?>
+
 <script>
 
     var id = 0;
@@ -277,6 +293,7 @@ if ($username != "anonymous"){
         let name = table.name;
         console.log("name:", String(name));
         console.log("php size:", <?php echo $btnMax; ?>);
+        $("#oldId").val(id);
 
         //not already loaded
         if (!loadedAreas["area" + area] || loadedAreas["area" + area] == "") {
@@ -304,6 +321,7 @@ if ($username != "anonymous"){
     }
 
     function renderArea(object) {
+        id = object.id;
         let buttonHtml = "";
         for (let i = 1; i <= btnMax; i++) {
             if (object[`button${i}`]) {
@@ -312,7 +330,7 @@ if ($username != "anonymous"){
         }
 
         if (object.color) {
-            $("body").css("background-color", object.color);
+            $("body").css("--body-bg-color", object.color);
             areaColor = object.color;
         } else {areaColor = null}
 
@@ -331,7 +349,7 @@ if ($username != "anonymous"){
         }
 
         let history = `
-            <tr data-link='${id}'>
+            <tr data-link='${object.id}'>
                 <td class='description'>${object.id}</td>
                 <td class='link' data-choice='1'>${object.choice1}</td>
                 <td class='link' data-choice='2'>${object.choice2}</td>
@@ -459,7 +477,7 @@ if ($username != "anonymous"){
         // let data = loadedAreas["area" + id];
 
         if (table.rpg) {
-            checkScore(data[`button${choice}`], $(this));
+            checkScore(data[`button${choice}`]);
         }
 
         $("#" + id).css("background-color", "lightblue");
@@ -597,10 +615,16 @@ if ($username != "anonymous"){
 
     displayError(<?php echo "`$error`, '$errorType'";?>);
 
+    //Change theme
+    $(document).on("change", "#themeSelect", function() {
+        let theme = $(this).val();
+        $("body").attr("data-theme", theme);
+    });
+
     //only activate loop link button on change
     $(document).on("change", "#path", function() {
         $("#loopLinkArea").attr("disabled", false);
-    })
+    });
 
     //loop link path
     $(document).on("click", ".loopLinkPath", function() {
@@ -640,9 +664,7 @@ if ($username != "anonymous"){
 
 </script>
 
-<?php if ($tableType == "RPG" || $tableType == "Six") {
-    echo "<script type='text/javascript' src='rpgmode.js'></script>";
-} ?>
+
 
 </body>
 </html>

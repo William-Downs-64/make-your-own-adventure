@@ -8,6 +8,7 @@ $("body").append(`<div class='rpg'>
     <div id='stat-SCORE'><h2>SCORE: <span id='SCORE-counter'></span></h2></div></div>`);
 
 function checkScore(text, container) {
+    // console.log("input text: " + text)
     let matches = text.match(/f?[A-Z]+([\+\-=\/\*][0-9\w]+(\.[0-9]+)?)+/g);
     // let wordMatches = text.match(/f?[A-Z]+=[A-Za-z_]+/g);
     let checkpoint = text.includes("CHECKPOINT");
@@ -19,19 +20,19 @@ function checkScore(text, container) {
     }
 
     if (matches) {
-        for (i=0; i<matches.length; i++) {
+        for (let i=0; i<matches.length; i++) {
             console.log("matches:" , matches)
             that = matches[i];
             let calc = that.match(/[\+\-=\/\*]/g)
             let value = that.match(/(?<=[\+\-=\/\*])[\w]+(\.[0-9]+)?/)[0];
-            console.log("Before String: " + value);
+            // console.log("Before String: " + value);
             value = String(value);
             console.log(value);
 
             statChange(that.match(/f?[A-Z]+/),value,calc[0])
             displayError(that, "info")
 
-            console.log("calc: " + calc)
+            // console.log("calc: " + calc)
             if (calc.length > 1) {
                 matches[i] = that.replace(/[\+\-=\/\*][\w\.]+/, "");
                 console.log(matches[i]);
@@ -41,14 +42,18 @@ function checkScore(text, container) {
         }
     }
 
-    rpgFormat(text, container);
-
+    // console.log("return text: " + text)
+    if (container) {
+        rpgFormat(text, container);
+    }
 }
 
 function rpgFormat(text, container) {
-    let replacing = text.match(/\?[A-Z]+/g);
-    let rules = text.match(/\(?f?[A-Z]+([<>!]=?|==)[0-9A-Za-z_]+(\.[0-9]+)?\)?/g);
+    let replacing = text.match(/\?f?[A-Z]+/g);
+    let rules = text.match(/f?[A-Z]+([<>!]=?|==)[0-9A-Za-z_]+(\.[0-9]+)?/g);
     let changes = text.match(/f?[A-Z]+([\+\-=\/\*][0-9\w]+(\.[0-9]+)?)+/g);
+
+    console.log("changes: " + changes)
     
     let hidden = text.match(/([\w\.=<>!]*)\[.*?\]/g);
     if (hidden) {
@@ -109,28 +114,48 @@ function rpgFormat(text, container) {
     if (rules) {
         for (i=0; i<rules.length; i++) {
             that = rules[i];
-            // that = that.replace(">=", "&ge;").replace("<=", "&le;");
-            // console.log(that);
-            text = text.replace(that, `<span class='rpg-rule'>${that}</span>`);
+            let re = new RegExp(`\\b${that}\\b`);
+            that = that.replace("!=", "&ne;").replace(">=", "&ge;").replace("<=", "&le;").replace("<", "&lt;").replace(">", "&gt;")
+            console.log("NewThat: " + re);
+            text = text.replace(re, `<span class='rpg-rule'>${that}</span>`);
         }
         // container.html(text.replace(">=", "&ge;").replace("<=", "&le;"));
     }
     if (changes) {
         for (i=0; i<changes.length; i++) {
             that = changes[i];
-            text = text.replace(that, `<span class='rpg-change'>${that}</span>`);
-            // container.html(text);
+            let escaped = RegExp.escape(that)
+            let re = new RegExp(`\\b${escaped}\\b`);
+            // that = that.replace("=", ":");
+            console.log("NewThat: " + re);
+            text = text.replace(re, `<span class='rpg-change'>${that}</span>`);
         }
     }
 
     
-    text = text.replace("!=", "&ne;").replace("==", "=").replace(">=", "&ge;").replace("<=", "&le;");
+    text = text;
     // text = "buffalo";
     container.html(text);
+    if (text == "" && debug != true) {
+        container.parent().hide();
+        console.log("hiding empty option");
+    }
 }
 
 function statChange(str, num, calc) {
     console.log("stat change: " + str + calc + num);
+
+    if ((/rand\d+/i).test(num)) {
+        console.log("randomize");
+
+        let randMax = num.match(/\d+/)[0];
+        let randNum = Math.floor(Math.random()*randMax) + 1;
+
+        console.log("Max: ", randMax, "Output: ", randNum);
+
+        num = randNum;
+    }
+
     if (!stats[str] || stats[str] == undefined) {
         stats[str] = 0;
     }
@@ -179,6 +204,7 @@ function wordChange(type, word) {
 function checkAbility(text, button) {
     let matches = text.match(/[A-Zf]+[<>=!]=?([\-0-9\.]|[A-Za-z_])+/g);
     let returnValue = text.includes("RETURN");
+    let backValue = text.includes("BACK");
     // console.log(matches);
     
 
@@ -187,6 +213,10 @@ function checkAbility(text, button) {
     if (returnValue) {
         console.log("Return to checkpoint", stats["CHECKPOINT"]);
         button.data("link", stats["CHECKPOINT"]);
+    }
+    if (backValue) {
+        console.log("Back to previous area");
+        button.attr("data-link", $("#oldId").val());
     }
 
     if (!matches || matches.length == 0 || debug == true) {
@@ -212,6 +242,11 @@ function statCheck(str, num, calc) {
         stats[str] = 0;
     }
     let statValue = stats[str];
+
+    if (stats[num]) {
+        num = stats[num];
+    }
+
     // console.log(calc);
     console.log("Stat value: " + statValue);
     calc = String(calc);
@@ -264,7 +299,7 @@ function statCheck(str, num, calc) {
 
 function renderStats(stat) {
     let value = stats[stat];
-    console.log("Rendering: " + String(stat), value);
+    // console.log("Rendering: " + String(stat), value);
     if (String(stat).startsWith("f")) {
         return; // do not display flag stats
     }

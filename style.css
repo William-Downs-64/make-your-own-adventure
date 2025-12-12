@@ -23,20 +23,35 @@
 
     --main-box-bg: whitesmoke;
     --main-box-text-color: black;
+    --main-box-border: rgb(68, 71, 69) 1px solid;
+    --previous-choice-bg: lightblue;
 
     --rpg-replace-color: rgb(0, 82, 0);
     --rpg-rule-color: rgb(43, 4, 56);
     --rpg-rule-fail: rgb(137, 0, 0);
     --rpg-change-color: rgb(0, 0, 117);
     --rpg-success-color: rgb(121, 118, 45);
+
+    --body-bg-color: white;
+    --body-tint: none;
 }
 
 body {
     transition: background-color 0.8s ease;
+    background: var(--body-bg-color);
+}
+.tint-overlay {
+    position: absolute;
+    background: var(--body-tint);
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: -4;
 }
 
 /* Additional Themes */
-body.theme1 {
+body[data-theme='1'] {
     --btn1-color: rgb(0, 0, 156);
     --btn2-color: rgb(0, 95, 0);
     --btn3-color: rgb(167, 94, 0);
@@ -57,13 +72,15 @@ body.theme1 {
 
     --main-box-bg: rgb(244, 255, 163);
     --main-box-text-color: rgb(37, 25, 10);
+    --main-box-border: rgb(85, 77, 101) 2px inset;
+    --previous-choice-bg: #efd6a1;
 
     --rpg-replace-color: rgb(70, 224, 70);
     --rpg-rule-color: rgb(164, 0, 219);
     --rpg-rule-fail: rgb(211, 36, 36);
     --rpg-change-color: rgb(0, 149, 248);
 }
-body.theme2 {
+body[data-theme='grayscale'] {
     --btn1-color: rgb(118, 139, 158);
     --btn2-color: rgb(129, 154, 129);
     --btn3-color: rgb(191, 160, 160);
@@ -84,11 +101,105 @@ body.theme2 {
 
     --main-box-bg: rgb(255, 255, 255);
     --main-box-text-color: rgb(40, 40, 40);
+    --main-box-border: rgb(78, 78, 78) 1px solid;
+    --previous-choice-bg: #9d9d9d;
 
     --rpg-replace-color: rgb(53, 86, 53);
     --rpg-rule-color: rgb(82, 67, 87);
     --rpg-rule-fail: rgb(74, 27, 27);
     --rpg-change-color: rgb(31, 30, 63);
+    --rpg-success-color: rgb(82, 81, 58);
+    --body-tint: rgba(117,117,117,.75);
+}
+body[data-theme='Dark'] {
+    --btn1-color: rgb(31, 61, 90);
+    --btn2-color: rgb(20, 53, 20);
+    --btn3-color: rgb(51, 15, 15);
+
+    --btn1-hover: rgb(57, 107, 154);
+    --btn2-hover: rgb(36, 96, 36);
+    --btn3-hover: rgb(107, 27, 27);
+
+    --btnWin-color: rgb(96, 9, 107);
+    --btnLose-color: rgb(135, 0, 0);
+    --btnWin-hover: rgb(122, 9, 105);
+    --btnLose-hover: rgb(210, 4, 4);
+
+    --btnDisabled: rgb(72, 72, 72);
+    --btnDisabled-text: rgb(204, 204, 204);
+
+    --btnText-color: rgb(255, 255, 255);
+
+    --main-box-bg: rgb(56, 56, 56);
+    --main-box-text-color: rgb(200, 200, 200);
+    --main-box-border: gray 1px solid;
+    --previous-choice-bg: #1a1d2b;
+
+    --rpg-replace-color: rgb(115, 177, 216);
+    --rpg-rule-color: rgb(195, 115, 221);
+    --rpg-rule-fail: rgb(210, 100, 100);
+    --rpg-change-color: rgb(119, 228, 85);
+    --body-tint: rgba(0,0,0,.3);
+}
+body[data-theme='Gradient'] {
+    background: linear-gradient(180deg, var(--body-bg-color) 25%, rgba(255, 255, 255) 100%);
+
+    --btn1-color: rgb(55, 168, 102);
+    --btn2-color: rgb(85, 165, 197);
+    --btn3-color: rgb(248, 243, 96);
+
+    --btn1-hover: rgb(55, 168, 102) linear-gradient(90deg,rgb(55, 168, 102) 50%, rgb(3, 171, 0)) no-repeat;
+    --btn2-hover: rgb(85, 165, 197) linear-gradient(90deg,rgb(85, 165, 197) 50%, rgb(92, 92, 234)) no-repeat;
+    --btn3-hover: rgb(248, 243, 96) linear-gradient(90deg,rgb(248, 243, 96) 50%, rgb(247, 212, 97)) no-repeat;
+
+    --btnWin-color: rgb(225, 0, 255);
+    --btnLose-color: rgb(209, 18, 18);
+    --btnWin-hover: linear-gradient(90deg,rgba(209, 46, 187, 1) 25%, rgba(185, 79, 247, 1) 75%);
+    --btnLose-hover: linear-gradient(90deg,rgba(209, 46, 46, 1) 25%, rgba(117, 0, 0, 1) 75%);
+
+    --btnDisabled: rgb(72, 72, 72);
+    --btnDisabled-text: rgb(204, 204, 204);
+
+    --btnText-color: rgb(0, 0, 0);
+
+    --main-box-bg: linear-gradient(160deg, rgb(229 202 202) 25%, rgb(177 155 113) 75%);
+    --main-box-text-color: rgb(0, 0, 0);
+    --main-box-border: rgb(0, 92, 6) 4px ridge;
+
+    --rpg-replace-color: rgb(0, 32, 52);
+    --rpg-rule-color: rgb(78, 12, 12);
+    --rpg-rule-fail: rgb(210, 100, 100);
+    --rpg-change-color: rgb(30, 92, 11);
+    --rpg-success-color: rgb(103, 100, 0);
+}
+body[data-theme='Blues'] {
+    --btn1-color: rgb(73, 32, 255);
+    --btn2-color: rgb(65, 138, 255);
+    --btn3-color: rgb(53, 255, 228);
+
+    --btn1-hover: rgb(57, 28, 185);
+    --btn2-hover: rgb(54, 146, 182);
+    --btn3-hover: rgb(36, 168, 150);
+
+    --btnWin-color: rgb(158, 234, 255);
+    --btnLose-color: rgb(77, 78, 122);
+    --btnWin-hover: rgb(158, 234, 255);
+    --btnLose-hover: rgb(38, 36, 64);
+
+    --btnDisabled: rgb(19 37 97);
+    --btnDisabled-text: rgb(204, 204, 204);
+
+    --btnText-color: rgb(0, 0, 0);
+
+    --main-box-bg: rgb(255, 255, 255);
+    --main-box-text-color: rgb(12, 10, 20);
+    --main-box-border: rgb(15, 3, 52) 4px ridge;
+
+    --rpg-replace-color: rgb(0, 32, 52);
+    --rpg-rule-color: rgb(1, 62, 45);
+    --rpg-rule-fail: rgb(135, 0, 0);
+    --rpg-change-color: rgb(33, 23, 43);
+    --rpg-success-color: rgb(47, 29, 75);
 }
 
 #errorHolder {
@@ -123,9 +234,10 @@ body.theme2 {
 .main-box {
     margin-top: 10px;
     width: 80%;
-    background-color: var(--main-box-bg);
+    background: var(--main-box-bg);
     padding: 10px;
     color: var(--main-box-text-color);
+    border: var(--main-box-border);
 }
 
 .history-container {
@@ -161,7 +273,7 @@ body.theme2 {
     padding: 10px;
     text-align: center;
     font-size: 20px;
-    background-color: lightblue;
+    background: var(--previous-choice-bg);
 }
 
 /* Button colors */
@@ -247,7 +359,7 @@ body.theme2 {
     font-weight: bold;
 }
 
-.rpg-succeed {
+#areaDescription .rpg-succeed {
     color: var(--rpg-success-color);
 }
 
