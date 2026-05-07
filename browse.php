@@ -178,6 +178,7 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
             this.viewers = thatRow['viewer'];
             this.type = thatRow['type'];
             this.button = `<button class='btn btn-primary'>Error</button>`;
+            this.stars = thatRow['stars'];
         }
 
         get _button() {
@@ -199,12 +200,20 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
 
 
         get load() {
+            let rating = "";
+
+            if (this.stars && this.stars != null && this.stars != 0) {
+                rating = `<div class="starHolder">
+                            <div class="stars"></div>
+                            <div class="stars fill" style="width: ${this.stars*20}%"></div>
+                        </div>`
+            }
 
             // let buttonHTML = this.button;
             if (!$(`#${this.name}`).length) {
                 let spaceName = this.name.replaceAll("_", " ");
                 let edit = "No";
-    
+
                 if (this.owner == username || this.editors.includes(`-(${username})`) || this.editors.includes("-all")) {
                     edit = "Yes";
                 }
@@ -214,12 +223,15 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
                         
                         <div class="card-header">
                             <h4 class="card-title">${spaceName}</h4>
+                            ${rating}
                         </div>
                         <div class="card-body">
                             <p>Description: ${this.description}</p>
                             <p>Owner: ${this.owner}</p>
                             <p>Editable: ${edit}</p>
                             <p>Type: ${this.type}</p>
+                            <p>Stars: ${this.stars}</p>
+                            
                             <div class="buttonArea">
                                 ${this._button}
                             </div>
@@ -227,6 +239,8 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
                     </div>
                 
                 `)
+            } else if (this.name == "portal") {
+                $("#portal .card-header").append(rating);
             }
         }
 
@@ -379,6 +393,7 @@ if (array_key_exists('saveEdit', $_POST) && array_key_exists('tableName', $_POST
     })
     $("#editorButtonAll").on("click", function() {
         $("#editors").val("-all");
+        $("#viewers").val("-all");
     })
     $("#editorButtonNone").on("click", function() {
         $("#editors").val(`-(${username})`);
