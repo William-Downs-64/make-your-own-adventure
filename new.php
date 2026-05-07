@@ -197,7 +197,7 @@ if ($username != "anonymous"){
                         <label for='option$i'>Path $i</label>
                         <input type='text' id='option$i' name='option$i' class='form-control areaInput'>
                         <button type='button' class='btn btn-outline-dark loopLinkPath col-4' id='loop$i' data-loop='$i'>Loop Link</button>
-                        <select class='form-select col pathSelect' name='pathLink$i' id='pathLink$i'><option value='0' class='default'>Link: <span>0</span></option></select>
+                        <input class='form-control col pathSelect' name='pathLink$i' id='pathLink$i' list='path'>
                     ";}?>
                 </div>
 
@@ -222,18 +222,19 @@ if ($username != "anonymous"){
 
                 <!-- Add link to prior area -->
                 <?php if($tableType != "Classic") {
-                    echo '<select class="form-select" name="path" id="path" value="">';
+                    echo '<input class="form-control" list="path" id="pathInput">';
+                    echo '<datalist class="" name="path" id="path" value="">';
                         echo '<option value="0">0=New Area</option>';
                     $queryPath = "SELECT `area`, `id` FROM " . $_SESSION['scenario'];
             
                     if ($resultPath = mysqli_query($conn, $queryPath)) {
                         while($path = mysqli_fetch_array($resultPath)) {
-                            $area = substr($path['area'], 0, 80) . "...";
+                            $area = substr($path['area'], 0, 120) . "...";
                             $thisId = $path['id'];
                             echo "<option value='$thisId'>$thisId=" .  htmlspecialchars($area) . "</option>";
                         }
                     }
-                    echo "</select>
+                    echo "</datalist>
                         <button type='button' name='loopLink' class='btn btn-dark form-control mt-2 loopLink submit' id='loopLinkArea' disabled>Loop Link</button>
                         </form>";
                 } ?>
@@ -372,7 +373,7 @@ if ($username != "anonymous"){
                     old: old,
                     choice: $("#oldChoice").val(),
                     table: $("#oldTable").val(),
-                    path: $("#path").val(),
+                    path: $("#pathInput").val(),
                 },
                 function(response) {
                     // Handle the response from the server
@@ -519,8 +520,8 @@ if ($username != "anonymous"){
                 $("#option" + i).val("");
             }
             if (data[`link${i}`]) {
-                $("#pathLink" + i + " .default span").html(data[`link${i}`]);
-                $("#pathLink" + i + " .default").val(data[`link${i}`]);
+                // $("#pathLink" + i + " .default span").html(data[`link${i}`]);
+                $("#pathLink" + i).val(data[`link${i}`]);
             }
         }
 
@@ -622,7 +623,7 @@ if ($username != "anonymous"){
     });
 
     //only activate loop link button on change
-    $(document).on("change", "#path", function() {
+    $(document).on("change", "#path, #pathInput", function() {
         $("#loopLinkArea").attr("disabled", false);
     });
 
@@ -635,7 +636,7 @@ if ($username != "anonymous"){
         
         if (html == "Loop Link") {
             if ($("#pathLink" + buttonNumber + " option").length < 2) {
-                $("#pathLink" + buttonNumber).append($("#path").html());
+                // $("#pathLink" + buttonNumber).append($("#path").html());
             }
             $("#pathLink" + buttonNumber).show();
             clicked.html("Remove Link");

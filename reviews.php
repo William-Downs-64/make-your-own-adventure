@@ -50,6 +50,14 @@ if (array_key_exists('user', $_SESSION)) {
         </div>';
 }
 
+if(array_key_exists("stars", $_POST)) {
+    if ($_POST['stars'] > 5 || $_POST['stars'] < .5) {
+        echo '<br> error: your star value is' . $_POST['stars'];
+        $_POST = [];
+
+    }
+}
+
 //add review
 if(array_key_exists("addReview", $_POST)) {
     $comment = $_POST['comment'];
@@ -84,6 +92,17 @@ if(array_key_exists("editReview", $_POST)) {
     mysqli_query($conn, $queryUpdate);
 }
 
+if(array_key_exists("editReview", $_POST) || array_key_exists("addReview", $_POST)) {
+    
+    $queryAverage = "SELECT AVG(`stars`) FROM `reviews` WHERE `adventure` = '$adventure'";
+    $result = mysqli_query($conn, $queryAverage);
+    if ($average = mysqli_fetch_array($result)) {
+        $average = $average[0];
+        echo "average" . $average;
+        $queryTableAverage = "UPDATE `tables` SET `stars` = '$average' WHERE `name` = '$adventure'";
+        mysqli_query($conn, $queryTableAverage);
+    }
+}
 
 ?>
 
